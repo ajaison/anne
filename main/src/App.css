@@ -5,38 +5,190 @@
   text-align: center;
 }
 
-.logo {
-  height: 6em;
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 1.2s ease-out;
+}
+
+.hero-image {
+  height: 18em;
   padding: 1.5em;
   will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  transition: filter 300ms, transform 0.5s ease;
+  filter: drop-shadow(0 0 2em #646cff66);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.hero-image:hover {
+  filter: drop-shadow(0 0 3em #646cffaa);
+  transform: scale(1.05);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.title {
+  font-size: 4rem;
+  margin-top: 1rem;
+  background: linear-gradient(to right, #fff, #646cff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
+.subtitle {
+  font-size: 1.2rem;
   color: #888;
+  max-width: 600px;
+}
+
+.primary-button {
+  background-color: #646cff;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(100, 108, 255, 0.3);
+}
+
+.primary-button:hover {
+  background-color: #535bf2;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(100, 108, 255, 0.4);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+}
+
+/* Password Form Styles */
+.password-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  width: 100%;
+  max-width: 300px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  outline: none;
+}
+
+.password-input:focus {
+  border-color: #646cff;
+  box-shadow: 0 0 15px rgba(100, 108, 255, 0.2);
+}
+
+/* Dashboard & Grid Styles */
+.challenges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 1000px;
+  margin-top: 2rem;
+}
+
+.challenge-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.3s, border-color 0.3s, background 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.challenge-card:hover {
+  transform: translateY(-10px);
+  border-color: #646cff66;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.challenge-card.completed {
+  border-color: #4CAF50;
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.challenge-status {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.start-btn {
+  margin-top: 1.5rem;
+  background: transparent;
+  border: 1px solid #646cff;
+  color: #646cff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.challenge-card:hover .start-btn {
+  background: #646cff;
+  color: white;
+}
+
+.final-button {
+  padding: 1.5rem 3rem;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #ff4d4d, #f96d6d);
+  box-shadow: 0 10px 30px rgba(255, 77, 77, 0.3);
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+
+  70% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.instruction {
+  margin-top: 1.5rem;
+  color: #666;
+  font-style: italic;
+}
+
+.footer-section {
+  margin-top: 3rem;
+  opacity: 0.5;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

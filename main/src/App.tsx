@@ -11,6 +11,8 @@ function App() {
     { id: 2, title: 'Sweet Trivia', description: 'How well do you know us?', isCompleted: false, gameComponent: 'TriviaGame' },
     { id: 3, title: 'Love Map', description: 'Find the hidden location.', isCompleted: false, gameComponent: 'MapGame' },
     { id: 4, title: 'Heart Catcher', description: 'Catch as many hearts as you can!', isCompleted: false, gameComponent: 'CatcherGame' },
+    { id: 5, title: 'Heart Catcher', description: 'Catch as many hearts as you can!', isCompleted: false, gameComponent: 'CatcherGame' },
+    { id: 6, title: 'Heart Catcher', description: 'Catch as many hearts as you can!', isCompleted: false, gameComponent: 'CatcherGame' },
   ])
 
   // Placeholder for selecting a challenge

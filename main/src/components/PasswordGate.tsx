@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import heroImage from '../assets/hero.png';
+import heroImage from '../assets/ivy.png';
 
 interface PasswordGateProps {
     onAuthenticated: () => void;

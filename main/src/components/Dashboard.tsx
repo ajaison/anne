@@ -12,8 +12,8 @@ const Dashboard: React.FC<DashboardProps> = ({ challenges, onSelectChallenge }) 
     return (
         <div className="dashboard-container" style={{ animation: 'fadeIn 0.8s ease-out' }}>
             <header className="hero-section" style={{ marginBottom: '3rem' }}>
-                <h1 className="title" style={{ fontSize: '3rem' }}>Valentine's Quest</h1>
-                <p className="subtitle">Complete all 4 challenges to unlock your final surprise!</p>
+                <h1 className="title" style={{ fontSize: '3rem' }}>Birthday Quest</h1>
+                <p className="subtitle">Complete all 6 challenges to unlock your final surprise!</p>
             </header>
 
             <div className="challenges-grid">

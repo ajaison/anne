@@ -5,15 +5,17 @@ interface LoveLetterGameProps {
     onBack: () => void;
 }
 
-const FINAL_MESSAGE = `My Dearest,
+const FINAL_MESSAGE = `My Anne,
 
-From the moment our paths crossed, my world became brighter. 
-Every laugh we share is my favorite melody, and every memory 
-is a treasure I hold close.
+I love you so much, my wold is so much brighter with you in it,
+you are funny, kind and work so hard for those around you. 
+I cant believe how lucky I am to have you in my life and to be with 
+on another birthday seeing how you have grown and become more confident
+as a person.
 
 You are the reason for my happiest days and my comfort in all others. 
 Today, I celebrate you—not just for your birthday, but for the 
-incredible person you are.
+incredible person you have become.
 
 Happy Birthday, my love. ❤️`;
 

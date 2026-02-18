@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import triviaBg from '../assets/triviaBackground.jpg';
-import aa1 from '../assets/oldItaly.png';
-import aa2 from '../assets/aa1.png';
+import triviaBg from '../assets/triviaBackground.png';
+import aa2 from '../assets/oldItaly.png';
+import aa1 from '../assets/aa1.png';
 import aa3 from '../assets/aa2.png';
 import aa4 from '../assets/aa3.png';
+import aa5 from '../assets/a5.png';
+import aa6 from '../assets/a9.png';
+import aa7 from '../assets/a2.png';
+import aa8 from '../assets/a1.png';
 
 interface TriviaGameProps {
     onComplete: () => void;
@@ -18,20 +22,40 @@ interface Question {
 
 const QUESTIONS: Question[] = [
     {
-        question: "Where did we have our first date?",
-        options: ["Paris", "Rome", "Venice", "Florence"],
-        correctAnswer: "Paris"
+        question: "What is annes favorite movie?",
+        options: ["Crazy, Stupid, Love", "The Devil Wears Prada", "The Devil Wears Gucci", "The devil Wears mankini"],
+        correctAnswer: "The Devil Wears Prada"
     },
     {
-        question: "What is my favorite flower?",
-        options: ["Rose", "Lily", "Daisy", "Sun flower"],
-        correctAnswer: "Rose"
+        question: "When did Alan and anne go to milan",
+        options: ["october 2019", "november 2019", "december 2029", "october 2018"],
+        correctAnswer: "november 2019"
     },
     {
-        question: "In which year did we first meet?",
-        options: ["2020", "2021", "2022", "2019"],
-        correctAnswer: "2020"
-    }
+        question: "What did alan and anne rate in barcelona",
+        options: ["clothing", "toilets", "wine", "tiramisu"],
+        correctAnswer: "tiramisu"
+    },
+    {
+        question: "What is the chant you say when u drink alcohol in the hagian loop",
+        options: ["Một, ba, hai, vô", "Một, hai, ba, vô", "Một, hai, ba, dô", "Một, ba, hai, dô"],
+        correctAnswer: "Một, hai, ba, dô"
+    },
+    {
+        question: "What animal did anne no see in her asian travels ",
+        options: ["Shark", "Tortoise", "Puffer Fish", "Rat"],
+        correctAnswer: "Tortoise"
+    },
+    {
+        question: "what happened after alan and annes paris trip ",
+        options: ["Anne book the wrong return train", "Anne forgot her wallet", "Anne forgot her luggage", "we missed the train"],
+        correctAnswer: "Anne book the wrong return train"
+    },
+    {
+        question: "whats alans favorate food anne has made",
+        options: ["Burger", "Beef Ragu", "Tacos", "Cinnamonbun"],
+        correctAnswer: "Beef Ragu"
+    },
 ];
 
 const MEMORIES = [
@@ -39,6 +63,10 @@ const MEMORIES = [
     { image: aa2, caption: "Every moment with you is a gift. 🎁" },
     { image: aa3, caption: "Every moment with you is a gift. 🎁" },
     { image: aa4, caption: "Every moment with you is a gift. 🎁" },
+    { image: aa5, caption: "Every moment with you is a gift. 🎁" },
+    { image: aa6, caption: "Every moment with you is a gift. 🎁" },
+    { image: aa7, caption: "Every moment with you is a gift. 🎁" },
+    { image: aa8, caption: "Every moment with you is a gift. 🎁" },
     // User can add more images here
 ];
 

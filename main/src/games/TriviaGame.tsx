@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import triviaBg from '../assets/triviaBackground.jpg';
-import memoryPlaceholder from '../assets/hero.png';
+import aa1 from '../assets/oldItaly.png';
+import aa2 from '../assets/aa1.png';
+import aa3 from '../assets/aa2.png';
+import aa4 from '../assets/aa3.png';
 
 interface TriviaGameProps {
     onComplete: () => void;
@@ -17,7 +20,7 @@ const QUESTIONS: Question[] = [
     {
         question: "Where did we have our first date?",
         options: ["Paris", "Rome", "Venice", "Florence"],
-        correctAnswer: "Venice"
+        correctAnswer: "Paris"
     },
     {
         question: "What is my favorite flower?",
@@ -27,43 +30,16 @@ const QUESTIONS: Question[] = [
     {
         question: "In which year did we first meet?",
         options: ["2020", "2021", "2022", "2019"],
-        correctAnswer: "2021"
-    },
-    {
-        question: "What was the first movie we watched together?",
-        options: ["The Notebook", "About Time", "La La Land", "Interstellar"],
-        correctAnswer: "About Time"
-    },
-    {
-        question: "Who said 'I love you' first?",
-        options: ["Me", "You", "Both at once", "It's a secret"],
-        correctAnswer: "You"
-    },
-    {
-        question: "What is our dream travel destination?",
-        options: ["Maldives", "Amalfi Coast", "Kyoto", "Santorini"],
-        correctAnswer: "Amalfi Coast"
-    },
-    {
-        question: "What is my favorite Italian dish?",
-        options: ["Pizza", "Pasta Carbonara", "Risotto", "Lasagna"],
-        correctAnswer: "Pasta Carbonara"
-    },
-    {
-        question: "What was our first holiday together?",
-        options: ["Spain", "Italy", "Greece", "France"],
-        correctAnswer: "Italy"
-    },
-    {
-        question: "What color are my eyes?",
-        options: ["Blue", "Brown", "Green", "Hazel"],
-        correctAnswer: "Brown"
-    },
-    {
-        question: "What is our song?",
-        options: ["Perfect", "Lover", "All of Me", "Thinking Out Loud"],
-        correctAnswer: "Perfect"
+        correctAnswer: "2020"
     }
+];
+
+const MEMORIES = [
+    { image: aa1, caption: "The beginning of our beautiful journey... ❤️" },
+    { image: aa2, caption: "Every moment with you is a gift. 🎁" },
+    { image: aa3, caption: "Every moment with you is a gift. 🎁" },
+    { image: aa4, caption: "Every moment with you is a gift. 🎁" },
+    // User can add more images here
 ];
 
 const TriviaGame: React.FC<TriviaGameProps> = ({ onComplete, onBack }) => {
@@ -72,6 +48,7 @@ const TriviaGame: React.FC<TriviaGameProps> = ({ onComplete, onBack }) => {
     const [showResult, setShowResult] = useState(false);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isAnswered, setIsAnswered] = useState(false);
+    const [currentMemoryIndex, setCurrentMemoryIndex] = useState(0);
 
     const handleOptionClick = (option: string) => {
         if (isAnswered) return;
@@ -93,6 +70,14 @@ const TriviaGame: React.FC<TriviaGameProps> = ({ onComplete, onBack }) => {
         }, 1500);
     };
 
+    const nextMemory = () => {
+        setCurrentMemoryIndex((prev) => (prev + 1) % MEMORIES.length);
+    };
+
+    const prevMemory = () => {
+        setCurrentMemoryIndex((prev) => (prev - 1 + MEMORIES.length) % MEMORIES.length);
+    };
+
     const scorePercentage = (score / QUESTIONS.length) * 100;
     const isWinner = scorePercentage >= 80;
 
@@ -107,11 +92,32 @@ const TriviaGame: React.FC<TriviaGameProps> = ({ onComplete, onBack }) => {
                         <div className="reward-section">
                             <p className="congrats-text">Bellissima! You know us so well. ❤️</p>
                             <h3 className="gallery-title">A Few Memories...</h3>
-                            <div className="memory-gallery">
-                                {/* User can add more images here later */}
-                                <img src={memoryPlaceholder} alt="Memory 1" className="memory-img" />
-                                <div className="memory-caption">"The beginning of forever..."</div>
+
+                            <div className="memory-carousel">
+                                <button className="carousel-arrow prev" onClick={prevMemory}>❮</button>
+                                <div className="memory-item">
+                                    <div className="memory-card">
+                                        <img
+                                            src={MEMORIES[currentMemoryIndex].image}
+                                            alt={`Memory ${currentMemoryIndex + 1}`}
+                                            className="memory-img"
+                                        />
+                                    </div>
+                                    <div className="memory-caption">"{MEMORIES[currentMemoryIndex].caption}"</div>
+                                </div>
+                                <button className="carousel-arrow next" onClick={nextMemory}>❯</button>
                             </div>
+
+                            <div className="carousel-dots">
+                                {MEMORIES.map((_, index) => (
+                                    <span
+                                        key={index}
+                                        className={`dot ${index === currentMemoryIndex ? 'active' : ''}`}
+                                        onClick={() => setCurrentMemoryIndex(index)}
+                                    ></span>
+                                ))}
+                            </div>
+
                             <button className="romantic-btn" onClick={onComplete}>Complete Challenge</button>
                         </div>
                     ) : (

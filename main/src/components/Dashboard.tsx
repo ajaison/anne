@@ -4,9 +4,10 @@ import type { Challenge } from '../types';
 interface DashboardProps {
     challenges: Challenge[];
     onSelectChallenge: (id: number) => void;
+    onCompleteAll?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ challenges, onSelectChallenge }) => {
+const Dashboard: React.FC<DashboardProps> = ({ challenges, onSelectChallenge, onCompleteAll }) => {
     const allCompleted = challenges.every(c => c.isCompleted);
 
     return (
@@ -33,11 +34,22 @@ const Dashboard: React.FC<DashboardProps> = ({ challenges, onSelectChallenge }) 
                 ))}
             </div>
 
-            {allCompleted && (
+            {allCompleted ? (
                 <div className="final-reveal" style={{ marginTop: '4rem', animation: 'bounceIn 1s' }}>
                     <button className="primary-button final-button">
                         Reveal Final Surprise ❤️
                     </button>
+                </div>
+            ) : (
+                <div style={{ marginTop: '3rem', opacity: 0.3 }}>
+                    {onCompleteAll && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onCompleteAll(); }}
+                            style={{ background: 'none', border: '1px solid #666', color: '#666', padding: '0.5rem 1rem', borderRadius: '5px', cursor: 'pointer' }}
+                        >
+                            Dev: Complete All
+                        </button>
+                    )}
                 </div>
             )}
         </div>

@@ -556,6 +556,514 @@
   max-width: 400px;
 }
 
+/* Carousel Styles */
+.memory-carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  position: relative;
+  width: 100%;
+}
+
+.carousel-arrow {
+  background: #8b0000;
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 10;
+}
+
+.carousel-arrow:hover {
+  background: #b22222;
+  transform: scale(1.1);
+}
+
+.memory-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.memory-card {
+  width: 100%;
+  max-width: 450px;
+  border: 5px solid white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  transform: rotate(-1deg);
+  transition: transform 0.3s;
+}
+
+.memory-card:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+
+.memory-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background: #d4af37;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+
+.dot.active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* Candle Game Styles */
+.candle-game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 90vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.cake-container {
+  position: relative;
+  margin-top: 3rem;
+  width: 300px;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.cake {
+  width: 280px;
+  height: 140px;
+  background: #f4d03f;
+  border-radius: 10px 10px 5px 5px;
+  position: relative;
+  box-shadow: inset -10px 0 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+}
+
+.icing {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  background: #ff69b4;
+  border-radius: 10px 10px 0 0;
+}
+
+.drip {
+  width: 20px;
+  height: 25px;
+  background: #ff69b4;
+  border-radius: 0 0 10px 10px;
+  position: absolute;
+  top: 30px;
+}
+
+.drip:nth-child(1) {
+  left: 20px;
+  height: 35px;
+}
+
+.drip:nth-child(2) {
+  left: 80px;
+  height: 25px;
+}
+
+.drip:nth-child(3) {
+  left: 160px;
+  height: 40px;
+}
+
+.plate {
+  width: 340px;
+  height: 15px;
+  background: #ddd;
+  border-radius: 10px;
+  position: absolute;
+  bottom: -15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.candle {
+  width: 15px;
+  height: 60px;
+  background: linear-gradient(to right, #e0e0e0 50%, #ffffff 50%);
+  position: absolute;
+  bottom: 140px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.candle::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 7px;
+  width: 1px;
+  height: 10px;
+  background: #333;
+}
+
+.flame {
+  display: none;
+  width: 15px;
+  height: 30px;
+  background: radial-gradient(circle at 50% 80%, #ffeb3b, #ff9800, #ff5722);
+  border-radius: 50% 50% 20% 20%;
+  position: absolute;
+  top: -35px;
+  left: 0;
+  box-shadow: 0 0 20px #ffeb3b;
+  animation: flicker 0.2s infinite alternate;
+}
+
+.candle.lit .flame {
+  display: block;
+}
+
+.candle.out .flame {
+  display: none;
+}
+
+/* Connections Game Styles */
+.connections-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 90vh;
+  padding: 1rem;
+}
+
+.game-board {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 600px;
+  margin: 1rem 0;
+}
+
+.words-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+}
+
+.word-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  word-break: break-word;
+}
+
+.word-card:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.word-card.selected {
+  background: #535bf2;
+  color: white;
+  border-color: #535bf2;
+  transform: translateY(-2px);
+}
+
+.found-group {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  color: #333;
+  animation: pop 0.5s ease-out;
+}
+
+.group-category {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.2rem;
+  text-transform: uppercase;
+}
+
+.group-items {
+  font-size: 1rem;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.connections-submit {
+  border: 1px solid #666;
+  color: #888;
+  background: transparent;
+  padding: 0.8rem 2rem;
+  border-radius: 20px;
+  cursor: not-allowed;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.connections-submit.active {
+  border-color: white;
+  color: white;
+  cursor: pointer;
+}
+
+.connections-submit.active:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.message-area {
+  height: 1.5rem;
+  color: #dd64ff;
+  font-weight: bold;
+}
+
+.win-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.5s;
+}
+
+.win-content {
+  background: #1a1a1a;
+  padding: 3rem;
+  border-radius: 20px;
+  border: 1px solid #dd64ff;
+  text-align: center;
+}
+
+/* Love Letter Game Styles */
+.letter-game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 90vh;
+  perspective: 1000px;
+}
+
+.envelope-container {
+  cursor: pointer;
+  animation: float 3s ease-in-out infinite;
+}
+
+.envelope {
+  width: 300px;
+  height: 200px;
+  background: #fdf2e9;
+  position: relative;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.envelope-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 150px solid transparent;
+  border-right: 150px solid transparent;
+  border-top: 100px solid #f0decb;
+  transform-origin: top;
+  transition: transform 0.8s;
+  z-index: 10;
+}
+
+.envelope:hover .envelope-flap {
+  transform: rotateX(180deg);
+}
+
+.heart-seal {
+  font-size: 3rem;
+  z-index: 20;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.tap-hint {
+  position: absolute;
+  bottom: -40px;
+  color: #dd64ff;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
+}
+
+.letter-paper {
+  background: #fffdf0;
+  width: 90%;
+  max-width: 600px;
+  padding: 3rem;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
+  font-family: 'Dancing Script', 'Brush Script MT', cursive;
+  font-size: 1.5rem;
+  line-height: 1.6;
+  color: #5d4037;
+  position: relative;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.letter-content {
+  flex: 1;
+  white-space: pre-wrap;
+}
+
+.cursor {
+  animation: blink 1s step-end infinite;
+}
+
+.letter-footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  animation: fadeIn 1s;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Reward Styles */
+.reward-view .reward-content {
+  text-align: center;
+  max-width: 800px;
+}
+
+.reward-title {
+  font-size: 3rem;
+  color: #dd64ff;
+  margin-bottom: 1rem;
+}
+
+.coupons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.coupon-card {
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+  border: 1px dashed #dd64ff;
+  padding: 1.5rem;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: transform 0.3s, background 0.3s;
+}
+
+.coupon-card:hover {
+  transform: translateY(-5px);
+  background: rgba(221, 100, 255, 0.1);
+}
+
+.coupon-emoji {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.coupon-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.coupon-desc {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
 .footer-section {
   margin-top: 3rem;
   opacity: 0.5;

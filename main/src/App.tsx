@@ -4,6 +4,9 @@ import Dashboard from './components/Dashboard'
 import WordleGame from './games/WordleGame'
 import TriviaGame from './games/TriviaGame'
 import BalloonPopGame from './games/BalloonPopGame'
+import CandleGame from './games/CandleGame'
+import ConnectionsGame from './games/ConnectionsGame'
+import LoveLetterGame from './games/LoveLetterGame'
 import type { Challenge } from './types'
 import './App.css'
 
@@ -14,9 +17,9 @@ function App() {
     { id: 1, title: 'Memory Wordle', description: 'Guess the special 5-letter word.', isCompleted: false, gameComponent: 'WordleGame' },
     { id: 2, title: 'Sweet Trivia', description: 'How well do you know us?', isCompleted: false, gameComponent: 'TriviaGame' },
     { id: 3, title: 'Balloon Pop', description: 'Pop balloons to reveal a message!', isCompleted: false, gameComponent: 'BalloonPopGame' },
-    { id: 4, title: 'Heart Catcher', description: 'Catch as many hearts as you can!', isCompleted: false, gameComponent: 'CatcherGame' },
-    { id: 5, title: 'Secret Puzzle', description: 'Solve the pieces of us.', isCompleted: false, gameComponent: 'PuzzleGame' },
-    { id: 6, title: 'Final Code', description: 'The last key to your gift.', isCompleted: false, gameComponent: 'CodeGame' },
+    { id: 4, title: 'Make a Wish', description: 'Blow out the candles!', isCompleted: false, gameComponent: 'CandleGame' },
+    { id: 5, title: 'Our Connections', description: 'Group words that belong together.', isCompleted: false, gameComponent: 'ConnectionsGame' },
+    { id: 6, title: 'My Letter to You', description: 'One final message...', isCompleted: false, gameComponent: 'LoveLetterGame' },
   ])
 
   const handleSelectChallenge = (id: number) => {
@@ -51,9 +54,34 @@ function App() {
             onBack={() => setActiveChallengeId(null)}
           />
         )
+      case 4:
+        return (
+          <CandleGame
+            onComplete={() => handleGameComplete(4)}
+            onBack={() => setActiveChallengeId(null)}
+          />
+        )
+      case 5:
+        return (
+          <ConnectionsGame
+            onComplete={() => handleGameComplete(5)}
+            onBack={() => setActiveChallengeId(null)}
+          />
+        )
+      case 6:
+        return (
+          <LoveLetterGame
+            onComplete={() => handleGameComplete(6)}
+            onBack={() => setActiveChallengeId(null)}
+          />
+        )
       default:
         return null
     }
+  }
+
+  const handleCompleteAll = () => {
+    setChallenges(prev => prev.map(c => ({ ...c, isCompleted: true })))
   }
 
   return (
@@ -66,6 +94,7 @@ function App() {
         <Dashboard
           challenges={challenges}
           onSelectChallenge={handleSelectChallenge}
+          onCompleteAll={handleCompleteAll}
         />
       )}
 

@@ -107,7 +107,7 @@ const TriviaGame: React.FC<TriviaGameProps> = ({ onComplete, onBack }) => {
     };
 
     const scorePercentage = (score / QUESTIONS.length) * 100;
-    const isWinner = scorePercentage >= 80;
+    const isWinner = scorePercentage >= 0;
 
     if (showResult) {
         return (

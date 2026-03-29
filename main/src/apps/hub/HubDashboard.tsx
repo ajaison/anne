@@ -48,6 +48,11 @@ const HubDashboard = () => {
 
   const activeApp = APPS[currentIndex];
 
+  const swipeConfidenceThreshold = 10000;
+  const swipePower = (offset: number, velocity: number) => {
+    return Math.abs(offset) * velocity;
+  };
+
   return (
     <div className="hub-container">
       <motion.header 
@@ -61,7 +66,7 @@ const HubDashboard = () => {
 
       <main className="hub-main">
         <div className="carousel-wrapper">
-          <button className="nav-button prev" onClick={handlePrev}>
+          <button className="nav-button prev desktop-only" onClick={handlePrev}>
             <ArrowLeft size={32} />
           </button>
 
@@ -69,10 +74,25 @@ const HubDashboard = () => {
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeApp.id}
-                initial={{ x: 100, opacity: 0, scale: 0.9 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={1}
+                onDragEnd={(_, { offset, velocity }) => {
+                  const swipe = swipePower(offset.x, velocity.x);
+
+                  if (swipe < -swipeConfidenceThreshold) {
+                    handleNext();
+                  } else if (swipe > swipeConfidenceThreshold) {
+                    handlePrev();
+                  }
+                }}
+                initial={{ x: 300, opacity: 0, scale: 0.9 }}
                 animate={{ x: 0, opacity: 1, scale: 1 }}
-                exit={{ x: -100, opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ x: -300, opacity: 0, scale: 0.9 }}
+                transition={{ 
+                  x: { type: "spring", stiffness: 300, damping: 30 },
+                  opacity: { duration: 0.2 }
+                }}
                 className="app-card"
                 style={{ background: activeApp.color }}
                 onClick={() => navigate(activeApp.route)}
@@ -97,7 +117,7 @@ const HubDashboard = () => {
             </AnimatePresence>
           </div>
 
-          <button className="nav-button next" onClick={handleNext}>
+          <button className="nav-button next desktop-only" onClick={handleNext}>
             <ArrowRight size={32} />
           </button>
         </div>

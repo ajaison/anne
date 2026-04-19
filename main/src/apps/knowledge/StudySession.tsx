@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Loader, Target, Sparkles } from 'lucide-react';
 import { fetchCardsByDeck, updateCardStats, supabase } from './services/supabase';
+import { syncService } from './services/sync';
+import { db } from './services/db';
 import type { Card, Deck } from './types';
 import './KnowledgeApp.css';
 
@@ -31,8 +33,8 @@ const StudySession = () => {
         const { data: deckData } = await supabase.from('decks').select('*').eq('id', deckId).single();
         setDeck(deckData);
 
-        // 2. Fetch Cards (For now we study all cards in the deck, ordered randomly)
-        const { data: cardData } = await fetchCardsByDeck(deckId);
+        // 2. Fetch Cards via Sync Service (handles offline)
+        const cardData = await syncService.getCards(deckId);
         if (cardData) {
             // Simple shuffle
             const shuffled = [...cardData].sort(() => Math.random() - 0.5);
@@ -66,19 +68,26 @@ const StudySession = () => {
         const nextReview = new Date();
         nextReview.setDate(nextReview.getDate() + (interval || 1));
 
-        // 1. Save Card Stats Update
-        await updateCardStats(activeCard.id, {
+        const updatedStats = {
             interval,
             ease_factor,
             repetitions,
             next_review: nextReview.toISOString()
-        });
+        };
 
-        // 2. Log to History for Stats
-        await supabase.from('review_history').insert({
-            card_id: activeCard.id,
-            rating: rating
-        });
+        // 1. Save Card Stats Update (Supabase - Online Only)
+        if (navigator.onLine) {
+            await updateCardStats(activeCard.id, updatedStats);
+            
+            // 2. Log to History for Stats (Supabase - Online Only)
+            await supabase.from('review_history').insert({
+                card_id: activeCard.id,
+                rating: rating
+            });
+        }
+
+        // 3. ALWAYS update locally in Dexie (Offline-First)
+        await db.cards.update(activeCard.id, updatedStats);
 
         // Move to next card
         if (currentIndex < cards.length - 1) {

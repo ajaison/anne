@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play } from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload } from 'lucide-react';
 import { fetchCardsByDeck, createCard, supabase } from './services/supabase';
+import { syncService } from './services/sync';
 import type { Card, Deck } from './types';
 import './KnowledgeApp.css';
 
@@ -13,6 +14,7 @@ const DeckView = () => {
     const [cards, setCards] = useState<Card[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
     
     const [question, setQuestion] = useState('');
     const [answer, setAnswer] = useState('');
@@ -32,9 +34,19 @@ const DeckView = () => {
     const loadCards = async () => {
         if (!deckId) return;
         setLoading(true);
-        const { data, error } = await fetchCardsByDeck(deckId);
-        if (!error) setCards(data || []);
+        
+        // Use syncService to get cards (handles offline fallback)
+        const data = await syncService.getCards(deckId);
+        setCards(data || []);
+        
         setLoading(false);
+    };
+
+    const handleSync = async () => {
+        if (!deckId) return;
+        setIsSyncing(true);
+        await syncService.downloadDeck(deckId);
+        setIsSyncing(false);
     };
 
     const handleCreateCard = async (e: React.FormEvent) => {
@@ -59,6 +71,15 @@ const DeckView = () => {
                 <div className="header-bottom">
                     <h1>{deck?.name || 'Loading Deck...'}</h1>
                     <div className="deck-actions">
+                        <button 
+                            className="sync-btn"
+                            onClick={handleSync}
+                            disabled={isSyncing}
+                            title="Download for offline use"
+                        >
+                            <CloudDownload size={18} className={isSyncing ? 'animate-pulse' : ''} />
+                            {isSyncing ? 'Syncing...' : 'Sync Offline'}
+                        </button>
                         <button 
                             className="study-btn" 
                             disabled={cards.length === 0}

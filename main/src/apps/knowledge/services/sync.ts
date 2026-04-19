@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { db } from './db';
-import { Deck, Card } from '../types';
+import type { Deck, Card } from '../types';
 
 export const syncService = {
   /**
@@ -48,13 +48,29 @@ export const syncService = {
    * Gets cards for a deck, trying local DB first if preferred
    */
   async getCards(deckId: string, preferLocal: boolean = false) {
-    if (preferLocal || !navigator.onLine) {
-      const localCards = await db.cards.where('deck_id').equals(deckId).toArray();
-      if (localCards.length > 0) return localCards;
-    }
+    try {
+      if (preferLocal || !navigator.onLine) {
+        const localCards = await db.cards.where('deck_id').equals(deckId).toArray();
+        if (localCards.length > 0) return localCards;
+      }
 
-    // Fallback to supabase if online and local is empty
-    const { data } = await supabase.from('cards').select('*').eq('deck_id', deckId);
-    return data as Card[];
+      // Fallback to supabase if online and local is empty
+      const { data, error } = await supabase.from('cards').select('*').eq('deck_id', deckId);
+      
+      if (error) {
+        console.warn('⚠️ Supabase fetch failed, trying local fallback:', error);
+        return await db.cards.where('deck_id').equals(deckId).toArray();
+      }
+
+      return (data || []) as Card[];
+    } catch (err) {
+      console.error('❌ Serious fetch error:', err);
+      // Last resort: try local even if we didn't specifically ask for it
+      try {
+        return await db.cards.where('deck_id').equals(deckId).toArray();
+      } catch {
+        return []; // Return empty array so the UI doesn't crash
+      }
+    }
   }
 };

@@ -34,12 +34,15 @@ const DeckView = () => {
     const loadCards = async () => {
         if (!deckId) return;
         setLoading(true);
-        
-        // Use syncService to get cards (handles offline fallback)
-        const data = await syncService.getCards(deckId);
-        setCards(data || []);
-        
-        setLoading(false);
+        try {
+            // Use syncService to get cards (handles offline fallback)
+            const data = await syncService.getCards(deckId);
+            setCards(data || []);
+        } catch (error) {
+            console.error('Failed to load cards:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSync = async () => {

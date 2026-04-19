@@ -28,20 +28,23 @@ const StudySession = () => {
     const loadSession = async () => {
         if (!deckId) return;
         setLoading(true);
-        
-        // 1. Fetch Deck info
-        const { data: deckData } = await supabase.from('decks').select('*').eq('id', deckId).single();
-        setDeck(deckData);
+        try {
+            // 1. Fetch Deck info
+            const { data: deckData } = await supabase.from('decks').select('*').eq('id', deckId).single();
+            setDeck(deckData);
 
-        // 2. Fetch Cards via Sync Service (handles offline)
-        const cardData = await syncService.getCards(deckId);
-        if (cardData) {
-            // Simple shuffle
-            const shuffled = [...cardData].sort(() => Math.random() - 0.5);
-            setCards(shuffled);
+            // 2. Fetch Cards via Sync Service (handles offline)
+            const cardData = await syncService.getCards(deckId);
+            if (cardData) {
+                // Simple shuffle
+                const shuffled = [...cardData].sort(() => Math.random() - 0.5);
+                setCards(shuffled);
+            }
+        } catch (error) {
+            console.error('Failed to load session:', error);
+        } finally {
+            setLoading(false);
         }
-        
-        setLoading(false);
     };
 
     const activeCard = cards[currentIndex];

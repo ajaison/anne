@@ -1,5 +1,5 @@
-import Dexie, { type Table } from 'dexie';
-import { Project, Deck, Card } from '../types';
+import { Dexie, type Table } from 'dexie';
+import type { Project, Deck, Card } from '../types';
 
 export class KnowledgeDB extends Dexie {
   // Define our tables

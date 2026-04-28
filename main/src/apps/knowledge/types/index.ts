@@ -23,6 +23,8 @@ export interface Card {
   ease_factor: number;
   repetitions: number;
   next_review: string;
+  image_url?: string;
+  is_code?: boolean;
 }
 
 export interface Tag {

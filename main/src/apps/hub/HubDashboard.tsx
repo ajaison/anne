@@ -16,6 +16,14 @@ interface AppProject {
 
 const APPS: AppProject[] = [
   {
+    id: 'knowledge',
+    title: '2nd Brain (Knowledge)',
+    description: 'Your long-term knowledge hub. Note-taking, flashcards (Anki-style), and Notion synchronization.',
+    icon: <Brain className="app-icon" />,
+    route: '/knowledge',
+    color: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+  },
+  {
     id: 'birthday',
     title: 'Birthday Adventure',
     description: 'A collection of mini-games and a heartfelt letter. Challenges include Wordle, Trivia, and more.',
@@ -23,14 +31,6 @@ const APPS: AppProject[] = [
     route: '/birthday',
     color: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
     isLegacy: true,
-  },
-  {
-    id: 'knowledge',
-    title: '2nd Brain (Knowledge)',
-    description: 'Your long-term knowledge hub. Note-taking, flashcards (Anki-style), and Notion synchronization.',
-    icon: <Brain className="app-icon" />,
-    route: '/knowledge',
-    color: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
   },
 ];
 
@@ -55,7 +55,7 @@ const HubDashboard = () => {
 
   return (
     <div className="hub-container">
-      <motion.header 
+      <motion.header
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="hub-header"
@@ -89,7 +89,7 @@ const HubDashboard = () => {
                 initial={{ x: 300, opacity: 0, scale: 0.9 }}
                 animate={{ x: 0, opacity: 1, scale: 1 }}
                 exit={{ x: -300, opacity: 0, scale: 0.9 }}
-                transition={{ 
+                transition={{
                   x: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.2 }
                 }}
@@ -104,8 +104,8 @@ const HubDashboard = () => {
                   <h2 className="app-title">{activeApp.title}</h2>
                   {activeApp.isLegacy && <span className="legacy-badge">Legacy</span>}
                   <p className="app-description">{activeApp.description}</p>
-                  
-                  <motion.div 
+
+                  <motion.div
                     className="launch-button"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -124,8 +124,8 @@ const HubDashboard = () => {
 
         <div className="pagination">
           {APPS.map((_, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className={`dot ${index === currentIndex ? 'active' : ''}`}
               onClick={() => setCurrentIndex(index)}
             />

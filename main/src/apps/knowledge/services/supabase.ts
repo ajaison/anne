@@ -21,8 +21,8 @@ export const createDeck = (name: string, description: string, projectId: string)
 
 // 3. Cards
 export const fetchCardsByDeck = (deckId: string) => supabase.from('cards').select('*').eq('deck_id', deckId)
-export const createCard = (deckId: string, question: string, answer: string) =>
-    supabase.from('cards').insert({ deck_id: deckId, question, answer })
+export const createCard = (deckId: string, question: string, answer: string, image_url?: string, is_code?: boolean) =>
+    supabase.from('cards').insert({ deck_id: deckId, question, answer, image_url, is_code })
 
 // 4. Tags
 export const fetchTags = () => supabase.from('tags').select('*')

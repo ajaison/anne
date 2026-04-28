@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload } from 'lucide-react';
-import { fetchCardsByDeck, createCard, supabase } from './services/supabase';
+import { createCard, supabase } from './services/supabase';
 import { syncService } from './services/sync';
+import { FlashcardContent } from './components/FlashcardContent';
 import type { Card, Deck } from './types';
 import './KnowledgeApp.css';
 
@@ -18,6 +19,8 @@ const DeckView = () => {
     
     const [question, setQuestion] = useState('');
     const [answer, setAnswer] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
+    const [isCode, setIsCode] = useState(false);
 
     useEffect(() => {
         if (deckId) {
@@ -56,10 +59,12 @@ const DeckView = () => {
         e.preventDefault();
         if (!question.trim() || !answer.trim() || !deckId) return;
 
-        const { error } = await createCard(deckId, question, answer);
+        const { error } = await createCard(deckId, question, answer, imageUrl.trim() || undefined, isCode);
         if (!error) {
             setQuestion('');
             setAnswer('');
+            setImageUrl('');
+            setIsCode(false);
             setIsCreating(false);
             loadCards();
         }
@@ -104,18 +109,34 @@ const DeckView = () => {
                         <h2>Add New Card</h2>
                         <form onSubmit={handleCreateCard}>
                             <textarea 
-                                placeholder="THE QUESTION" 
+                                placeholder="THE QUESTION (Markdown supported)" 
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
                                 rows={3}
                                 autoFocus
                             />
                             <textarea 
-                                placeholder="THE ANSWER"
+                                placeholder="THE ANSWER (Markdown supported)"
                                 value={answer}
                                 onChange={(e) => setAnswer(e.target.value)}
                                 rows={5}
                             />
+                            <div className="extra-inputs">
+                                <input 
+                                    type="url" 
+                                    placeholder="Image URL (optional)" 
+                                    value={imageUrl}
+                                    onChange={(e) => setImageUrl(e.target.value)}
+                                />
+                                <label className="code-toggle">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={isCode}
+                                        onChange={(e) => setIsCode(e.target.checked)}
+                                    />
+                                    <span>Contain Code Snippet</span>
+                                </label>
+                            </div>
                             <div className="form-actions">
                                 <button type="button" className="cancel-btn" onClick={() => setIsCreating(false)}>Cancel</button>
                                 <button type="submit" className="submit-btn" disabled={!question.trim() || !answer.trim()}>Save Card</button>
@@ -132,14 +153,23 @@ const DeckView = () => {
                 ) : cards.length > 0 ? (
                     <div className="card-list">
                         {cards.map(card => (
-                            <div key={card.id} className="knowledge-card">
+                            <div key={card.id} className={`knowledge-card ${card.is_code ? 'code-card' : ''}`}>
                                 <div className="card-front">
                                     <HelpCircle className="card-icon" size={20} />
-                                    <p>{card.question}</p>
+                                    <div className="card-text-content">
+                                        <div className="card-markdown">
+                                            <FlashcardContent content={card.question} />
+                                        </div>
+                                        {card.image_url && <img src={card.image_url} alt="Card visual" className="card-image-preview" />}
+                                    </div>
                                 </div>
                                 <div className="card-back">
                                     <CheckCircle className="answer-icon" size={20} />
-                                    <p>{card.answer}</p>
+                                    <div className="card-text-content">
+                                        <div className="card-markdown">
+                                            <FlashcardContent content={card.answer} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         ))}

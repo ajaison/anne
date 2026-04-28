@@ -12,14 +12,14 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<HubDashboard />} />
-        <Route path="/birthday/*" element={<BirthdayApp />} />
-        
+
         {/* Knowledge App Routes */}
         <Route path="/knowledge" element={<KnowledgeApp />} />
         <Route path="/knowledge/project/:projectId" element={<ProjectView />} />
         <Route path="/knowledge/deck/:deckId" element={<DeckView />} />
         <Route path="/knowledge/study/:deckId" element={<StudySession />} />
         <Route path="/knowledge/stats" element={<StatsView />} />
+        <Route path="/birthday/*" element={<BirthdayApp />} />
       </Routes>
     </Router>
   );

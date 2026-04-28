@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Loader, Target, Sparkles } from 'lucide-react';
-import { fetchCardsByDeck, updateCardStats, supabase } from './services/supabase';
+import { updateCardStats, supabase } from './services/supabase';
 import { syncService } from './services/sync';
 import { db } from './services/db';
+import { FlashcardContent } from './components/FlashcardContent';
 import type { Card, Deck } from './types';
 import './KnowledgeApp.css';
 
@@ -36,9 +37,25 @@ const StudySession = () => {
             // 2. Fetch Cards via Sync Service (handles offline)
             const cardData = await syncService.getCards(deckId);
             if (cardData) {
-                // Simple shuffle
-                const shuffled = [...cardData].sort(() => Math.random() - 0.5);
-                setCards(shuffled);
+                const now = new Date();
+                
+                // Separate cards into categories
+                const dueCards = cardData.filter(card => {
+                    const reviewDate = new Date(card.next_review);
+                    return reviewDate <= now && card.repetitions > 0;
+                });
+                
+                const newCards = cardData.filter(card => card.repetitions === 0);
+                
+                // Sort due cards by how overdue they are (most overdue first)
+                dueCards.sort((a, b) => new Date(a.next_review).getTime() - new Date(b.next_review).getTime());
+                
+                // Shuffle new cards to keep variety
+                newCards.sort(() => Math.random() - 0.5);
+                
+                // Combine: Due cards first, then new cards
+                // We could also limit new cards here if desired (e.g. .slice(0, 20))
+                setCards([...dueCards, ...newCards]);
             }
         } catch (error) {
             console.error('Failed to load session:', error);
@@ -167,13 +184,23 @@ const StudySession = () => {
                         {!showAnswer ? (
                             <div className="flashcard-front">
                                 <Target size={32} className="card-q-icon" />
-                                <div className="q-text">{activeCard.question}</div>
+                                <div className="q-text">
+                                    <FlashcardContent content={activeCard.question} />
+                                </div>
+                                {activeCard.image_url && <img src={activeCard.image_url} alt="Study guide" className="study-card-image" />}
                                 <button className="show-btn" onClick={() => setShowAnswer(true)}>Show Answer</button>
                             </div>
                         ) : (
                             <div className="flashcard-back">
-                                <div className="q-peek">{activeCard.question}</div>
-                                <div className="a-text">{activeCard.answer}</div>
+                                <div className="q-peek">
+                                    <FlashcardContent content={activeCard.question} />
+                                </div>
+                                <div className="a-text">
+                                    <FlashcardContent content={activeCard.answer} />
+                                </div>
+                                {activeCard.image_url && !activeCard.question.includes(activeCard.image_url) && (
+                                    <img src={activeCard.image_url} alt="Study visual" className="study-card-image" />
+                                )}
                                 
                                 <div className="rating-options">
                                     <button onClick={() => handleRating('again')} className="rate-btn again">

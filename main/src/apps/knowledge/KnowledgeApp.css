@@ -890,3 +890,99 @@
           background: rgba(239, 68, 68, 0.1);
       }
   }
+
+  /* Bulk Editor Styles */
+  .bulk-editor {
+      background: #fdf2f8;
+      border-color: #fbcfe8;
+      margin-bottom: 30px;
+  }
+
+  .editor-header {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 20px;
+  }
+
+  .editor-header h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      color: #be185d;
+  }
+
+  .editor-header p {
+      margin: 0;
+      color: #9d174d;
+      font-size: 0.9rem;
+      opacity: 0.8;
+  }
+
+  .bulk-textarea {
+      width: 100%;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #f9a8d4;
+      background: white;
+      resize: vertical;
+      min-height: 200px;
+      outline: none;
+      margin-bottom: 15px;
+  }
+
+  .bulk-textarea:focus {
+      border-color: #ec4899;
+      box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+  }
+
+  /* Button Variants */
+  .bulk-add-btn {
+      background: #ec4899;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+
+  .bulk-add-btn:hover {
+      background: #db2777;
+      transform: translateY(-2px);
+  }
+
+  .copy-ai-btn {
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      padding: 10px 16px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+
+  .copy-ai-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+  }
+
+  @media (prefers-color-scheme: dark) {
+      .bulk-editor { background: #1e1b4b; border-color: #312e81; }
+      .editor-header h2 { color: #818cf8; }
+      .editor-header p { color: #a5b4fc; }
+      .bulk-textarea { background: #1e293b; border-color: #334155; color: white; }
+      .copy-ai-btn { background: #334155; border-color: #475569; color: #cbd5e1; }
+      .copy-ai-btn:hover { background: #475569; color: white; }
+  }

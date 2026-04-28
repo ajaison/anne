@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload, Trash2 } from 'lucide-react';
-import { createCard, supabase, deleteCard } from './services/supabase';
+import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload, Trash2, Zap, Copy, FileText } from 'lucide-react';
+import { createCard, supabase, deleteCard, bulkCreateCards } from './services/supabase';
 import { syncService } from './services/sync';
 import { FlashcardContent } from './components/FlashcardContent';
 import type { Card, Deck } from './types';
@@ -21,6 +21,9 @@ const DeckView = () => {
     const [answer, setAnswer] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isCode, setIsCode] = useState(false);
+    const [isBulkMode, setIsBulkMode] = useState(false);
+    const [bulkText, setBulkText] = useState('');
+    const [isImporting, setIsImporting] = useState(false);
 
     useEffect(() => {
         if (deckId) {
@@ -80,6 +83,84 @@ const DeckView = () => {
         }
     };
 
+    const handleBulkImport = async () => {
+        if (!bulkText.trim() || !deckId) return;
+        setIsImporting(true);
+        
+        try {
+            let cardsToCreate: any[] = [];
+            
+            // Try parsing as JSON first (Most robust for images/code)
+            try {
+                const parsed = JSON.parse(bulkText);
+                if (Array.isArray(parsed)) {
+                    cardsToCreate = parsed.map(c => ({
+                        deck_id: deckId,
+                        question: c.question || c.q,
+                        answer: c.answer || c.a,
+                        image_url: c.image_url || c.i,
+                        is_code: !!(c.is_code || c.c)
+                    }));
+                }
+            } catch (e) {
+                // If JSON fails, use the Enhanced Pipe Format
+                // Q: Question | A: Answer | I: ImageURL | C: true
+                const lines = bulkText.split('\n');
+                lines.forEach(line => {
+                    if (line.includes('|')) {
+                        const parts = line.split('|');
+                        const card: any = { deck_id: deckId };
+                        
+                        parts.forEach(part => {
+                            const p = part.trim();
+                            if (p.startsWith('Q:')) card.question = p.replace(/^Q:\s*/, '').trim();
+                            else if (p.startsWith('A:')) card.answer = p.replace(/^A:\s*/, '').trim();
+                            else if (p.startsWith('I:')) card.image_url = p.replace(/^I:\s*/, '').trim();
+                            else if (p.startsWith('C:')) card.is_code = p.toLowerCase().includes('true');
+                            // Fallback for parts without prefixes
+                            else if (!card.question) card.question = p;
+                            else if (!card.answer) card.answer = p;
+                        });
+
+                        if (card.question && card.answer) {
+                            cardsToCreate.push(card);
+                        }
+                    }
+                });
+            }
+
+            if (cardsToCreate.length > 0) {
+                const { error } = await bulkCreateCards(cardsToCreate);
+                if (error) throw error;
+                setBulkText('');
+                setIsBulkMode(false);
+                loadCards();
+                alert(`Successfully imported ${cardsToCreate.length} cards!`);
+            } else {
+                alert('No valid cards found. Use format: Q: Question | A: Answer | I: ImageURL | C: true');
+            }
+        } catch (err: any) {
+            alert('Import failed: ' + err.message);
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
+    const copyDeckForAI = () => {
+        const text = cards.map(c => {
+            let line = `Q: ${c.question} | A: ${c.answer}`;
+            if (c.image_url) line += ` | I: ${c.image_url}`;
+            if (c.is_code) line += ` | C: true`;
+            return line;
+        }).join('\n');
+        
+        const header = `# Existing Flashcards for ${deck?.name}\n` +
+                       `# Instructions: Generate new cards in this format: "Q: [Question] | A: [Answer] | I: [Optional Image URL] | C: [Optional true/false]"\n\n`;
+        
+        navigator.clipboard.writeText(header + text);
+        alert('Deck context (including images/code tags) copied to clipboard!');
+    };
+
     return (
         <div className="knowledge-container">
             <header className="knowledge-header">
@@ -89,6 +170,9 @@ const DeckView = () => {
                 <div className="header-bottom">
                     <h1>{deck?.name || 'Loading Deck...'}</h1>
                     <div className="deck-actions">
+                        <button className="copy-ai-btn" onClick={copyDeckForAI} title="Copy deck for AI analysis">
+                            <Copy size={18} /> Context
+                        </button>
                         <button 
                             className="sync-btn"
                             onClick={handleSync}
@@ -96,17 +180,20 @@ const DeckView = () => {
                             title="Download for offline use"
                         >
                             <CloudDownload size={18} className={isSyncing ? 'animate-pulse' : ''} />
-                            {isSyncing ? 'Syncing...' : 'Sync Offline'}
+                            Offline
                         </button>
                         <button 
                             className="study-btn" 
                             disabled={cards.length === 0}
                             onClick={() => navigate(`/knowledge/study/${deckId}`)}
                         >
-                            <Play size={18} /> Study Now
+                            <Play size={18} /> Study
+                        </button>
+                        <button className="bulk-add-btn" onClick={() => setIsBulkMode(!isBulkMode)}>
+                            <Zap size={18} /> Bulk Add
                         </button>
                         <button className="add-project-btn" onClick={() => setIsCreating(true)}>
-                            <Plus size={20} /> New Card
+                            <Plus size={20} />
                         </button>
                     </div>
                 </div>
@@ -114,6 +201,33 @@ const DeckView = () => {
             </header>
 
             <main className="knowledge-content">
+                {isBulkMode && (
+                    <div className="project-form-card bulk-editor">
+                        <div className="editor-header">
+                            <h2><Zap size={20} /> Bulk Import Cards</h2>
+                            <p>Paste cards from AI. Format: <code>Q: Question | A: Answer</code> (one per line) or a JSON array.</p>
+                        </div>
+                        <textarea 
+                            className="bulk-textarea"
+                            placeholder="Example:
+Q: What is React? | A: A JavaScript library for building UI
+Q: What is Vite? | A: A fast frontend build tool" 
+                            value={bulkText}
+                            onChange={(e) => setBulkText(e.target.value)}
+                            rows={10}
+                        />
+                        <div className="form-actions">
+                            <button className="cancel-btn" onClick={() => setIsBulkMode(false)}>Cancel</button>
+                            <button 
+                                className="submit-btn" 
+                                onClick={handleBulkImport}
+                                disabled={isImporting || !bulkText.trim()}
+                            >
+                                {isImporting ? 'Importing...' : 'Import All Cards'}
+                            </button>
+                        </div>
+                    </div>
+                )}
                 {isCreating && (
                     <div className="project-form-card card-editor">
                         <h2>Add New Card</h2>

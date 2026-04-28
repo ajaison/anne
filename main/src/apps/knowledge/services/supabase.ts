@@ -50,3 +50,4 @@ export const fetchReviewHistory = () =>
 // 9. Deletions
 export const deleteProject = (id: string) => supabase.from('projects').delete().eq('id', id)
 export const deleteCard = (id: string) => supabase.from('cards').delete().eq('id', id)
+export const bulkCreateCards = (cards: any[]) => supabase.from('cards').insert(cards)

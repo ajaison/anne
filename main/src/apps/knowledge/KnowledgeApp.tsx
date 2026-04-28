@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Folder, Search, Loader } from 'lucide-react';
-import { fetchProjects, createProject } from './services/supabase';
+import { ArrowLeft, Plus, Folder, Search, Loader, Trash2 } from 'lucide-react';
+import { fetchProjects, createProject, deleteProject } from './services/supabase';
 import type { Project } from './types';
 import './KnowledgeApp.css';
 
@@ -46,6 +46,18 @@ const KnowledgeApp = () => {
             setNewProjectName('');
             setNewProjectDesc('');
             setIsCreating(false);
+            loadProjects();
+        }
+    };
+
+    const handleDeleteProject = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        if (!confirm('Are you sure you want to delete this project and all its decks?')) return;
+        
+        const { error } = await deleteProject(id);
+        if (error) {
+            alert('Failed to delete project: ' + error.message);
+        } else {
             loadProjects();
         }
     };
@@ -127,6 +139,13 @@ const KnowledgeApp = () => {
                                 </div>
                                 <div className="card-footer">
                                     <span className="date-badge">Created {new Date(project.created_at).toLocaleDateString()}</span>
+                                    <button 
+                                        className="delete-card-btn" 
+                                        onClick={(e) => handleDeleteProject(e, project.id)}
+                                        title="Delete Project"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
                                 </div>
                             </div>
                         ))}

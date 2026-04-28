@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload } from 'lucide-react';
-import { createCard, supabase } from './services/supabase';
+import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload, Trash2 } from 'lucide-react';
+import { createCard, supabase, deleteCard } from './services/supabase';
 import { syncService } from './services/sync';
 import { FlashcardContent } from './components/FlashcardContent';
 import type { Card, Deck } from './types';
@@ -66,6 +66,16 @@ const DeckView = () => {
             setImageUrl('');
             setIsCode(false);
             setIsCreating(false);
+            loadCards();
+        }
+    };
+    const handleDeleteCard = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this card?')) return;
+        
+        const { error } = await deleteCard(id);
+        if (error) {
+            alert('Failed to delete card: ' + error.message);
+        } else {
             loadCards();
         }
     };
@@ -162,6 +172,13 @@ const DeckView = () => {
                                         </div>
                                         {card.image_url && <img src={card.image_url} alt="Card visual" className="card-image-preview" />}
                                     </div>
+                                    <button 
+                                        className="delete-card-btn" 
+                                        onClick={() => handleDeleteCard(card.id)}
+                                        title="Delete Card"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
                                 </div>
                                 <div className="card-back">
                                     <CheckCircle className="answer-icon" size={20} />

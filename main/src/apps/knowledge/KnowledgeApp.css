@@ -184,8 +184,9 @@
   /* Project Grid */
   .project-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+      gap: 32px; /* Increased gap */
+      padding-bottom: 20px;
       animation: fadeIn 0.4s ease-out;
   }
 
@@ -195,17 +196,20 @@
       border-radius: 20px;
       border: 1px solid #e2e8f0;
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       flex-direction: column;
-      height: 100%;
-      min-height: 200px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+      height: auto; /* Allow card to height naturally */
+      min-height: 180px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      position: relative;
+      z-index: 1;
   }
 
   .project-card:hover {
       border-color: #6366f1;
       transform: translateY(-8px);
+      z-index: 2; /* Bring hovered card to front */
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
   }
 
@@ -292,6 +296,14 @@
   }
 
   @media (max-width: 640px) {
+      .header-top { 
+          flex-direction: column; 
+          align-items: stretch; 
+          gap: 15px;
+      }
+      .search-bar {
+          max-width: none;
+      }
       .header-bottom { align-items: flex-start; flex-direction: column; }
       .add-project-btn { width: 100%; justify-content: center; }
   }
@@ -847,4 +859,34 @@
       .code-toggle { color: #94a3b8; }
       .card-image-preview { border-color: #334155; }
       .card-markdown code { background: rgba(99, 102, 241, 0.2); }
+  }
+
+  /* Deletion Styles */
+  .delete-card-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+      opacity: 0.6;
+  }
+
+  .delete-card-btn:hover {
+      color: #ef4444;
+      background: #fef2f2;
+      opacity: 1;
+  }
+
+  .project-card .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+
+  @media (prefers-color-scheme: dark) {
+      .delete-card-btn:hover {
+          background: rgba(239, 68, 68, 0.1);
+      }
   }

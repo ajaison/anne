@@ -257,26 +257,13 @@
   }
 
   .carousel-wrapper {
-    gap: 0;
-    padding: 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .hub-header {
-    padding-top: 40px;
-    padding-bottom: 20px;
-  }
-
-  .hub-main {
-    justify-content: center;
-    padding-top: 0;
-    gap: 20px;
+    padding: 0 10px;
   }
 
   .card-container {
-    height: 400px;
-    max-width: 90vw;
+    height: 380px;
+    width: calc(100vw - 40px);
+    max-width: 400px;
   }
 
   .app-card {

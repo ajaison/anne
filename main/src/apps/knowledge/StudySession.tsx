@@ -54,8 +54,19 @@ const StudySession = () => {
                 newCards.sort(() => Math.random() - 0.5);
                 
                 // Combine: Due cards first, then new cards
-                // We could also limit new cards here if desired (e.g. .slice(0, 20))
-                setCards([...dueCards, ...newCards]);
+                let sessionCards = [...dueCards, ...newCards];
+                
+                // FALLBACK: If no cards are due or new, show cards from the rest of the deck
+                // sorted by "least confidence" (lowest interval/ease factor)
+                if (sessionCards.length === 0 && cardData.length > 0) {
+                    const fallbackCards = [...cardData].sort((a, b) => {
+                        if (a.interval !== b.interval) return a.interval - b.interval;
+                        return a.ease_factor - b.ease_factor;
+                    });
+                    sessionCards = fallbackCards;
+                }
+
+                setCards(sessionCards);
             }
         } catch (error) {
             console.error('Failed to load session:', error);

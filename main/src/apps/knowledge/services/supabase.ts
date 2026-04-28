@@ -46,3 +46,7 @@ export const updateCardStats = (cardId: string, stats: Partial<Card>) =>
 // 8. Fetch History
 export const fetchReviewHistory = () => 
     supabase.from('review_history').select('*').order('created_at', { ascending: false })
+
+// 9. Deletions
+export const deleteProject = (id: string) => supabase.from('projects').delete().eq('id', id)
+export const deleteCard = (id: string) => supabase.from('cards').delete().eq('id', id)

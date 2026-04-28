@@ -986,3 +986,64 @@
       .copy-ai-btn { background: #334155; border-color: #475569; color: #cbd5e1; }
       .copy-ai-btn:hover { background: #475569; color: white; }
   }
+
+  /* AI Guide Styles */
+  .ai-guide-modal {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      margin-bottom: 30px;
+  }
+
+  .guide-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 25px;
+  }
+
+  .step {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+  }
+
+  .step strong {
+      color: #1e40af;
+      font-size: 1rem;
+  }
+
+  .step p {
+      margin: 0;
+      color: #1e3a8a;
+      font-size: 0.95rem;
+      opacity: 0.8;
+  }
+
+  .copy-template-btn {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: fit-content;
+      margin-top: 5px;
+      transition: all 0.2s;
+  }
+
+  .copy-template-btn:hover {
+      background: #2563eb;
+      transform: scale(1.02);
+  }
+
+  @media (prefers-color-scheme: dark) {
+      .ai-guide-modal { background: #1e3a8a22; border-color: #1e40af; }
+      .step strong { color: #93c5fd; }
+      .step p { color: #bfdbfe; }
+      .copy-template-btn { background: #2563eb; }
+  }

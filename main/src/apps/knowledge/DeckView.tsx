@@ -22,6 +22,7 @@ const DeckView = () => {
     const [imageUrl, setImageUrl] = useState('');
     const [isCode, setIsCode] = useState(false);
     const [isBulkMode, setIsBulkMode] = useState(false);
+    const [showGuide, setShowGuide] = useState(false);
     const [bulkText, setBulkText] = useState('');
     const [isImporting, setIsImporting] = useState(false);
 
@@ -161,6 +162,18 @@ const DeckView = () => {
         alert('Deck context (including images/code tags) copied to clipboard!');
     };
 
+    const copyPromptTemplate = () => {
+        const template = `**Task:** Generate 20 new high-quality flashcards for the deck "${deck?.name}".\n\n` +
+            `**Output Format:**\n` +
+            `Q: [Question] | A: [Detailed Answer] | I: [Optional Image URL] | C: [true/false]\n\n` +
+            `**Instructions:**\n` +
+            `- Use Markdown for code/formatting.\n` +
+            `- Focus on conceptual depth.\n` +
+            `- No duplicates.`;
+        navigator.clipboard.writeText(template);
+        alert('Prompt template copied!');
+    };
+
     return (
         <div className="knowledge-container">
             <header className="knowledge-header">
@@ -170,6 +183,9 @@ const DeckView = () => {
                 <div className="header-bottom">
                     <h1>{deck?.name || 'Loading Deck...'}</h1>
                     <div className="deck-actions">
+                        <button className="copy-ai-btn" onClick={() => setShowGuide(true)} title="AI Generation Guide">
+                            <HelpCircle size={18} /> Guide
+                        </button>
                         <button className="copy-ai-btn" onClick={copyDeckForAI} title="Copy deck for AI analysis">
                             <Copy size={18} /> Context
                         </button>
@@ -201,6 +217,34 @@ const DeckView = () => {
             </header>
 
             <main className="knowledge-content">
+                {showGuide && (
+                    <div className="project-form-card ai-guide-modal">
+                        <div className="editor-header">
+                            <h2><HelpCircle size={20} /> AI Flashcard Guide</h2>
+                            <p>Use Gemini to grow your 2nd Brain in 3 steps:</p>
+                        </div>
+                        <div className="guide-steps">
+                            <div className="step">
+                                <strong>1. Copy Context:</strong>
+                                <p>Click the <b>Context</b> button to let Gemini know what you already have.</p>
+                            </div>
+                            <div className="step">
+                                <strong>2. Use the Prompt:</strong>
+                                <p>Paste your context into Gemini and ask it to generate new cards using our standard format.</p>
+                                <button className="copy-template-btn" onClick={copyPromptTemplate}>
+                                    <Copy size={14} /> Copy Prompt Template
+                                </button>
+                            </div>
+                            <div className="step">
+                                <strong>3. Bulk Import:</strong>
+                                <p>Copy Gemini's output and paste it into the <b>Bulk Add</b> editor.</p>
+                            </div>
+                        </div>
+                        <div className="form-actions">
+                            <button className="submit-btn" onClick={() => setShowGuide(false)}>Got it!</button>
+                        </div>
+                    </div>
+                )}
                 {isBulkMode && (
                     <div className="project-form-card bulk-editor">
                         <div className="editor-header">

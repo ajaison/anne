@@ -70,12 +70,14 @@ const KnowledgeApp = () => {
         <div className="knowledge-container">
             <header className="knowledge-header">
                 <div className="header-top">
-                    <button className="back-button" onClick={() => navigate('/')}>
-                        <ArrowLeft size={20} /> Back to Hub
-                    </button>
-                    <button className="back-button" onClick={() => navigate('/knowledge/stats')}>
-                        Stats Hub
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <button className="back-button" onClick={() => navigate('/')}>
+                            <ArrowLeft size={20} /> Back to Hub
+                        </button>
+                        <button className="back-button" onClick={() => navigate('/knowledge/stats')}>
+                            Stats Hub
+                        </button>
+                    </div>
                     <div className="search-bar">
                         <Search size={18} className="search-icon" />
                         <input 

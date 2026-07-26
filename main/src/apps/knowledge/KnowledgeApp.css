@@ -77,8 +77,14 @@
 
   .search-bar {
     position: relative;
-    max-width: 400px;
+    max-width: 260px;
     width: 100%;
+    margin-left: auto;
+    transition: max-width 0.25s ease;
+  }
+
+  .search-bar:focus-within {
+    max-width: 320px;
   }
 
   .search-icon {
@@ -87,15 +93,16 @@
       top: 50%;
       transform: translateY(-50%);
       color: #94a3b8;
+      pointer-events: none;
   }
 
   .search-bar input {
       width: 100%;
-      padding: 12px 14px 12px 42px;
+      padding: 10px 14px 10px 42px;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
       background: white;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       outline: none;
       transition: all 0.2s;
   }

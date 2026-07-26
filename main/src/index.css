@@ -1,3 +1,7 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -27,6 +31,11 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: #0d0d0d; /* Set a default dark background */
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 
 h1 {

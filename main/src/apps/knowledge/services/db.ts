@@ -17,8 +17,16 @@ export class KnowledgeDB extends Dexie {
       decks: 'id, project_id, name',
       cards: 'id, deck_id, next_review'
     });
+
+    // Version 2: Added card_type and distractors columns
+    this.version(2).stores({
+      projects: 'id, name',
+      decks: 'id, project_id, name',
+      cards: 'id, deck_id, next_review, card_type'
+    });
   }
 }
 
 // Create a single instance to be used throughout the app
 export const db = new KnowledgeDB();
+

@@ -14,6 +14,8 @@ export interface Deck {
   created_at: string;
 }
 
+export type StudyMode = 'classic' | 'multiple_choice' | 'fill_blank' | 'type_answer';
+
 export interface Card {
   id: string;
   deck_id: string;
@@ -25,9 +27,26 @@ export interface Card {
   next_review: string;
   image_url?: string;
   is_code?: boolean;
+  card_type?: StudyMode;
+  distractors?: string[];
 }
 
 export interface Tag {
   id: string;
   name: string;
+}
+
+export interface SessionCardResult {
+  card: Card;
+  correct: boolean;
+  attempts: number;
+  mode: StudyMode;
+}
+
+export interface SessionResult {
+  totalCards: number;
+  correctFirst: number;
+  xpEarned: number;
+  bestStreak: number;
+  cardResults: SessionCardResult[];
 }

@@ -63,13 +63,33 @@ main/
 *   [ ] Ensure flawless mobile experience for the study sessions.
 
 ### In Progress
-*   [ ] Building out `StudySession.tsx` functionality in the `knowledge` app to iterate through flashcards efficiently.
+*   (nothing currently — all major items complete)
 
 ### Done
 *   [x] Initial setup and Github repository connection.
 *   [x] Completion of core Birthday Game web app features.
 *   [x] Connecting Supabase client and setting up the basic table structure for the Knowledge app.
 *   [x] Configured PWA infrastructure for iOS setup.
+*   [x] **Advanced SRS Algorithm**: Implemented prioritized review logic (Due -> New -> Cram fallback).
+*   [x] **Rich Media Flashcards**: Added Markdown, Prism syntax highlighting, and Image URL support.
+*   [x] **AI Workflow**: Implemented "Context Export" and "Bulk Import" features for rapid card generation.
+*   [x] **Mobile Optimization**: Fixed Hub Dashboard and Knowledge Hub layout issues for narrow screens.
+*   [x] **Interactive Study Modes**: Added 4 study modes to StudySession — Multiple Choice (auto-generated distractors from sibling cards), Fill in the Blank (Java keyword auto-extraction), Type Answer (Levenshtein fuzzy match), Classic flip. Mode is auto-selected per card based on card_type field and session index.
+*   [x] **Session Gamification**: XP flash animation (+10/+15 XP), streak badge (🔥), animated Session Summary screen with accuracy %, XP, best streak, and per-card breakdown.
+*   [x] **Quick Add Panel**: Floating slide-in panel (⚡ Quick Add button in DeckView) for rapid card creation. Supports Cmd+Enter to save & reset, auto-detects Java code, mode selector dropdown.
+*   [x] **Java Syntax Highlighting Upgrade**: vscDarkPlus theme, JetBrains Mono font, java-orange accent border on all code blocks, line numbers, and copy-to-clipboard button.
+*   [x] **Supabase Schema**: Added `card_type TEXT DEFAULT 'classic'` and `distractors TEXT[]` columns to cards table. Dexie local schema bumped to v2.
+
+---
+
+## 🔮 Future Vision: "The Loom" (Journal + SRS)
+A future concept to merge long-form journaling with memory retention.
+*   **Concept**: Write thoughts/ideas freely and extract flashcards automatically.
+*   **Features**:
+    *   Markdown Note Editor with specific SRS tagging syntax.
+    *   AI "Memory Extraction" to suggest flashcards from journal entries.
+    *   "Incremental Reflection": SRS prompts to review past thoughts/memories, not just facts.
+    *   Bidirectional linking between cards and the source notes/journals.
 
 ---
 

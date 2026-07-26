@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Card } from '../types'
+import type { Card, StudyMode } from '../types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://aedrarhwgtajdrfyzyae.supabase.co'
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_DiPjlX9kxoH_7X_shndwCQ_GR4YTUEN'
@@ -21,8 +21,16 @@ export const createDeck = (name: string, description: string, projectId: string)
 
 // 3. Cards
 export const fetchCardsByDeck = (deckId: string) => supabase.from('cards').select('*').eq('deck_id', deckId)
-export const createCard = (deckId: string, question: string, answer: string, image_url?: string, is_code?: boolean) =>
-    supabase.from('cards').insert({ deck_id: deckId, question, answer, image_url, is_code })
+export const createCard = (
+    deckId: string,
+    question: string,
+    answer: string,
+    image_url?: string,
+    is_code?: boolean,
+    card_type?: StudyMode,
+    distractors?: string[]
+) =>
+    supabase.from('cards').insert({ deck_id: deckId, question, answer, image_url, is_code, card_type, distractors })
 
 // 4. Tags
 export const fetchTags = () => supabase.from('tags').select('*')
@@ -51,3 +59,4 @@ export const fetchReviewHistory = () =>
 export const deleteProject = (id: string) => supabase.from('projects').delete().eq('id', id)
 export const deleteCard = (id: string) => supabase.from('cards').delete().eq('id', id)
 export const bulkCreateCards = (cards: any[]) => supabase.from('cards').insert(cards)
+

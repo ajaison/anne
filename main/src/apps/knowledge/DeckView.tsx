@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload, Trash2, Zap, Copy, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload, Trash2, Zap, Copy } from 'lucide-react';
 import { createCard, supabase, deleteCard, bulkCreateCards } from './services/supabase';
 import { syncService } from './services/sync';
 import { FlashcardContent } from './components/FlashcardContent';
-import type { Card, Deck } from './types';
+import QuickAddPanel from './components/QuickAddPanel';
+import type { Card, Deck, StudyMode } from './types';
 import './KnowledgeApp.css';
 
 const DeckView = () => {
@@ -21,10 +22,12 @@ const DeckView = () => {
     const [answer, setAnswer] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isCode, setIsCode] = useState(false);
+    const [cardType, setCardType] = useState<StudyMode>('multiple_choice');
     const [isBulkMode, setIsBulkMode] = useState(false);
     const [showGuide, setShowGuide] = useState(false);
     const [bulkText, setBulkText] = useState('');
     const [isImporting, setIsImporting] = useState(false);
+    const [showQuickAdd, setShowQuickAdd] = useState(false);
 
     useEffect(() => {
         if (deckId) {
@@ -63,12 +66,13 @@ const DeckView = () => {
         e.preventDefault();
         if (!question.trim() || !answer.trim() || !deckId) return;
 
-        const { error } = await createCard(deckId, question, answer, imageUrl.trim() || undefined, isCode);
+        const { error } = await createCard(deckId, question, answer, imageUrl.trim() || undefined, isCode, cardType);
         if (!error) {
             setQuestion('');
             setAnswer('');
             setImageUrl('');
             setIsCode(false);
+            setCardType('multiple_choice');
             setIsCreating(false);
             loadCards();
         }
@@ -118,6 +122,7 @@ const DeckView = () => {
                             else if (p.startsWith('A:')) card.answer = p.replace(/^A:\s*/, '').trim();
                             else if (p.startsWith('I:')) card.image_url = p.replace(/^I:\s*/, '').trim();
                             else if (p.startsWith('C:')) card.is_code = p.toLowerCase().includes('true');
+                            else if (p.startsWith('TYPE:')) card.card_type = p.replace(/^TYPE:\s*/, '').trim();
                             // Fallback for parts without prefixes
                             else if (!card.question) card.question = p;
                             else if (!card.answer) card.answer = p;
@@ -207,6 +212,9 @@ const DeckView = () => {
                         </button>
                         <button className="bulk-add-btn" onClick={() => setIsBulkMode(!isBulkMode)}>
                             <Zap size={18} /> Bulk Add
+                        </button>
+                        <button className="quick-add-btn" onClick={() => setShowQuickAdd(true)}>
+                            <Zap size={18} /> Quick Add
                         </button>
                         <button className="add-project-btn" onClick={() => setIsCreating(true)}>
                             <Plus size={20} />
@@ -302,8 +310,21 @@ Q: What is Vite? | A: A fast frontend build tool"
                                         checked={isCode}
                                         onChange={(e) => setIsCode(e.target.checked)}
                                     />
-                                    <span>Contain Code Snippet</span>
+                                    <span>Contains Java Code</span>
                                 </label>
+                            </div>
+                            <div className="extra-inputs">
+                                <label className="card-type-label">Study Mode:</label>
+                                <select
+                                    className="card-type-select"
+                                    value={cardType}
+                                    onChange={(e) => setCardType(e.target.value as StudyMode)}
+                                >
+                                    <option value="multiple_choice">🎯 Multiple Choice</option>
+                                    <option value="fill_blank">✏️ Fill in the Blank</option>
+                                    <option value="type_answer">⌨️ Type Answer</option>
+                                    <option value="classic">🃏 Classic Flip</option>
+                                </select>
                             </div>
                             <div className="form-actions">
                                 <button type="button" className="cancel-btn" onClick={() => setIsCreating(false)}>Cancel</button>
@@ -357,6 +378,16 @@ Q: What is Vite? | A: A fast frontend build tool"
                     </div>
                 )}
             </main>
+
+            {/* Quick Add Panel */}
+            {showQuickAdd && deck && (
+                <QuickAddPanel
+                    deckId={deckId!}
+                    deckName={deck.name}
+                    onClose={() => setShowQuickAdd(false)}
+                    onCardAdded={loadCards}
+                />
+            )}
         </div>
     );
 };

@@ -1,0 +1,194 @@
+[
+  {
+    "question": "What is printed by the following labeled loop code?\n```java\nouter: for (int i = 1; i <= 3; i++) {\n    for (int j = 1; j <= 3; j++) {\n        if (i * j == 4) break outer;\n        System.out.print(i + \"\" + j + \" \");\n    }\n}\n```",
+    "answer": "11 12 13 21\n\nWhen `i = 2` and `j = 2`, `i * j == 4` evaluates to `true`. The `break outer;` statement immediately terminates the loop labeled `outer` (the outer `i` loop). Output produced before breaking is `11 12 13 21 `.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "11 12 13 21 23 31 32 33",
+      "11 12 13 21 31 32 33",
+      "11 12 13"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of this switch statement with missing break statements?\n```java\nint count = 2;\nswitch (count) {\n    case 1: System.out.print(\"A \");\n    case 2: System.out.print(\"B \");\n    case 3: System.out.print(\"C \");\n    default: System.out.print(\"D \");\n}\n```",
+    "answer": "B C D\n\nBecause there are no `break` statements, after matching `case 2:`, execution continues ('falls through') into `case 3:` and `default:`, executing their statements sequentially.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "B",
+      "A B C D",
+      "B D"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What keyword is used in Java 14+ switch expressions to yield a value from a block `case`?\n```java\nint result = switch (day) {\n    case \"MONDAY\" -> 1;\n    default -> {\n        int len = day.length();\n        _______ len * 2;\n    }\n};\n```",
+    "answer": "yield",
+    "card_type": "fill_in_the_blank",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "Which of the following primitive types CANNOT be used as a switch expression selector in classic Java?",
+    "answer": "long",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "int",
+      "char",
+      "short"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the compilation result of the following snippet?\n```java\nwhile (false) {\n    System.out.println(\"Unreachable\");\n}\n```",
+    "answer": "Compiler Error: unreachable statement.\n\nThe `javac` compiler checks constant expressions in `while (false)` loops and throws a compile-time error because the body can never be reached. (Note: `if (false)` is treated as a conditional compilation exception and does NOT cause a compiler error).",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and prints nothing",
+      "Compiles cleanly and prints Unreachable",
+      "Throws ArithmeticException at runtime"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the result of attempting to compile and run this loop?\n```java\nfor (double d = 0.0; d != 1.0; d += 0.1) {\n    System.out.print(d + \" \");\n}\n```",
+    "answer": "Infinite loop (never terminates naturally).\n\nDue to IEEE 754 floating-point precision, `0.1` cannot be represented exactly in binary. Accumulating `0.1` yields values like `0.9999999999999999` and `1.0999999999999999`, skipping `1.0` exactly and causing `d != 1.0` to remain true indefinitely.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Prints numbers from 0.0 to 0.9 and terminates",
+      "Prints numbers from 0.0 to 1.0 and terminates",
+      "Compiler Error: floating point loop counter prohibited"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What does the following `do-while` loop print?\n```java\nint i = 5;\ndo {\n    System.out.print(i + \" \");\n    i++;\n} while (i < 5);\n```",
+    "answer": "5",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What does the `else` block bind to in the following code?\n```java\nif (a > 0)\n    if (b > 0)\n        System.out.println(\"Both positive\");\nelse\n    System.out.println(\"Else reached\");\n```",
+    "answer": "The inner `if (b > 0)`.\n\nIn Java, an `else` clause always binds to the nearest preceding `if` statement that does not already have an `else` clause (the 'dangling else' rule). Indentation does not change parsing.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "The outer `if (a > 0)`",
+      "Compiler Error: ambiguous else binding",
+      "Both inner and outer if statements simultaneously"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What happens when passing `null` to a standard switch statement without a `case null` branch?\n```java\nString s = null;\nswitch (s) {\n    case \"A\": System.out.println(\"A\"); break;\n    default: System.out.println(\"Default\");\n}\n```",
+    "answer": "Throws a NullPointerException at runtime.\n\nEvaluating the selector in a standard switch invokes `.hashCode()` or `.equals()` under the hood for reference types like `String`, which throws `NullPointerException` when the selector is `null`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Executes default branch and prints Default",
+      "Compiler Error: switch selector cannot be null",
+      "Silently skips the switch block without error"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of the following Java snippet?\n```java\nint x = 0;\nfor (int i = 0, j = 10; i < j; i += 2, j -= 2) {\n    x += (i + j);\n}\nSystem.out.println(x);\n```",
+    "answer": "30\n\n- Iteration 1: `i=0, j=10`. `x += 10` -> `x=10`. Update: `i=2, j=8`.\n- Iteration 2: `i=2, j=8`. `x += 10` -> `x=20`. Update: `i=4, j=6`.\n- Iteration 3: `i=4, j=6`. `x += 10` -> `x=30`. Update: `i=6, j=4`.\n- Loop terminates (`6 < 4` is false). Final `x = 30`.",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "Why does the following code fail to compile?\n```java\nif (x = 5) {\n    System.out.println(\"Equals 5\");\n}\n```",
+    "answer": "Compiler Error: incompatible types: int cannot be converted to boolean.\n\nIn Java, `x = 5` is an assignment expression evaluating to `int` value `5`. The condition inside `if(...)` strictly requires a `boolean` expression. Unlike C++, numbers cannot be implicitly converted to boolean in Java.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and prints Equals 5",
+      "Compiler Error: assignment inside if condition is illegal syntax",
+      "Throws NullPointerException at runtime"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is printed by this labeled `continue` statement?\n```java\nouter: for (int i = 1; i <= 2; i++) {\n    for (int j = 1; j <= 3; j++) {\n        if (j == 2) continue outer;\n        System.out.print(i + \"\" + j + \" \");\n    }\n}\n```",
+    "answer": "11 21\n\nWhen `j == 2`, `continue outer;` immediately skips the remainder of the current inner loop and jumps to the next iteration of the `outer` loop. Thus, only `j=1` prints for `i=1` (`11`) and for `i=2` (`21`).",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "11 13 21 23",
+      "11 12 21 22",
+      "11 21 31"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the requirement for Java 14+ switch expressions that return a value?",
+    "answer": "The switch expression MUST be exhaustive (all possible selector input values must be covered by case arms or a `default` arm).",
+    "card_type": "classic",
+    "distractors": [],
+    "is_code": false
+  },
+  {
+    "question": "What is the output of the following code?\n```java\nint sum = 0;\nfor (int i = 0; i < 5; i++) {\n    if (i % 2 == 0) continue;\n    sum += i;\n}\nSystem.out.println(sum);\n```",
+    "answer": "4\n\n`continue` skips even values of `i` (`0, 2, 4`). Odd values `1` and `3` are added to `sum`: `1 + 3 = 4`.",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What compilation error occurs here?\n```java\nfor (int i = 0; i < 3; i++) {\n    // do something\n}\nSystem.out.println(i);\n```",
+    "answer": "Compiler Error: cannot find symbol variable i.\n\nVariables declared inside a `for` loop initialization header (`int i = 0`) are scoped strictly to the loop body and header. They cannot be accessed outside the loop.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and prints 3",
+      "Compiles cleanly and prints 2",
+      "Compiles cleanly and prints 0"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "In Java 14+ arrow switch syntax (`case \"A\" -> ...`), is an explicit `break` statement required to prevent fallthrough?",
+    "answer": "No. Arrow syntax (`->`) automatically prevents fallthrough. Only the expression or statement block matching the case arm is executed.",
+    "card_type": "classic",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What is printed by this ternary statement?\n```java\nint a = 5;\nint b = 10;\nint max = (a > b) ? a++ : b++;\nSystem.out.println(\"max=\" + max + \", b=\" + b);\n```",
+    "answer": "max=10, b=11\n\nBecause `(a > b)` is `false`, only the false branch `b++` is evaluated. Post-increment returns original value `10` to `max`, then increments `b` to `11`. The true branch `a++` is never executed.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "max=11, b=11",
+      "max=10, b=10",
+      "max=11, b=10"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What happens when modifying a Collection while iterating over it with an enhanced `for-each` loop?\n```java\nList<String> list = new ArrayList<>(List.of(\"A\", \"B\"));\nfor (String item : list) {\n    if (item.equals(\"A\")) list.remove(item);\n}\n```",
+    "answer": "Throws ConcurrentModificationException at runtime.\n\nEnhanced `for-each` loops use an underlying `Iterator`. Modifying the underlying collection directly via `list.remove()` invalidates the iterator's internal modification count (`modCount`).",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and removes element A without error",
+      "Compiler Error: list modified inside loop scope",
+      "Infinite loop occurs"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of this `do-while` loop?\n```java\nint x = 0;\ndo {\n    x++;\n    if (x == 2) continue;\n    System.out.print(x + \" \");\n} while (x < 3);\n```",
+    "answer": "1 3",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "Which statement about Java pattern matching in switch statements (Java 17/21) is TRUE?",
+    "answer": "Guarded case labels use the `when` keyword to specify additional boolean conditions (e.g. `case String s when s.length() > 5`).",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Guarded case labels use the `if` keyword inside switch cases",
+      "Pattern matching in switch is limited strictly to primitive types",
+      "Switch pattern matching automatically converts all null selectors to default"
+    ],
+    "is_code": true
+  }
+]

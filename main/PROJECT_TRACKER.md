@@ -79,6 +79,10 @@ main/
 *   [x] **Quick Add Panel**: Floating slide-in panel (⚡ Quick Add button in DeckView) for rapid card creation. Supports Cmd+Enter to save & reset, auto-detects Java code, mode selector dropdown.
 *   [x] **Java Syntax Highlighting Upgrade**: vscDarkPlus theme, JetBrains Mono font, java-orange accent border on all code blocks, line numbers, and copy-to-clipboard button.
 *   [x] **Supabase Schema**: Added `card_type TEXT DEFAULT 'classic'` and `distractors TEXT[]` columns to cards table. Dexie local schema bumped to v2.
+*   [x] **Smart Distractor Fallbacks**: Enhanced `MultipleChoiceCard` to prevent full paragraph sibling answer pull-in; now uses structural length matching and domain-specific fallbacks (Compiler Errors, numeric offsets, boolean pairs).
+*   [x] **Paced Study Session Flow**: Removed auto-advance timers on interactive cards; added explicit **Next Question ➔** buttons with `Enter`/`Space` keyboard shortcuts for comfortable self-paced learning.
+*   [x] **Session Navigation**: Added **← Prev** button in StudySession header allowing backward/forward card navigation during study sessions.
+*   [x] **80 Core Java Mastery Flashcards**: Generated 4 modular JSON card packs (20 cards each across Variables, Control Flow, Arrays, and Strings & String Pool) adhering to senior engineering specs.
 
 ---
 

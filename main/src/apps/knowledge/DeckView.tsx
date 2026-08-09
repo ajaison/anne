@@ -104,7 +104,9 @@ const DeckView = () => {
                         question: c.question || c.q,
                         answer: c.answer || c.a,
                         image_url: c.image_url || c.i,
-                        is_code: !!(c.is_code || c.c)
+                        is_code: !!(c.is_code || c.c),
+                        card_type: c.card_type || c.t || 'classic',
+                        distractors: c.distractors || c.d || []
                     }));
                 }
             } catch (e) {

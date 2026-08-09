@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -58,12 +58,10 @@ const applyBlank = (answer: string, token: string): string => {
 
 /** Generate word chip options — correct + 3 similar distractors */
 const generateChips = (token: string): string[] => {
-  // Find related Java keywords for plausible distractors
   const idx = JAVA_KEYWORDS.indexOf(token);
   let pool: string[] = [];
 
   if (idx !== -1) {
-    // Pick nearby keywords for close distractors
     const start = Math.max(0, idx - 5);
     pool = JAVA_KEYWORDS.slice(start, start + 8).filter(k => k !== token);
   } else {
@@ -86,9 +84,23 @@ const FillBlankCard: React.FC<FillBlankCardProps> = ({ question, answer, onResul
     if (revealed) return;
     setSelected(chip);
     setRevealed(true);
-    const isCorrect = chip === blankToken;
-    setTimeout(() => onResult(isCorrect), isCorrect ? 1000 : 2000);
   };
+
+  const handleNext = () => {
+    if (!selected) return;
+    onResult(selected === blankToken);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (revealed && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        handleNext();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [revealed, selected, blankToken]);
 
   const getChipState = (chip: string) => {
     if (!revealed) return 'idle';
@@ -97,7 +109,6 @@ const FillBlankCard: React.FC<FillBlankCardProps> = ({ question, answer, onResul
     return 'dim';
   };
 
-  // Render the blanked answer as a code block with ___ as the blank slot
   const codeWithSlot = blankedAnswer.replace('___', '[  ?  ]');
 
   return (
@@ -147,15 +158,21 @@ const FillBlankCard: React.FC<FillBlankCardProps> = ({ question, answer, onResul
       <AnimatePresence>
         {revealed && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`fb-result ${selected === blankToken ? 'fb-result--correct' : 'fb-result--wrong'}`}
+            className="fb-result-wrapper"
           >
-            {selected === blankToken ? (
-              <><CheckCircle2 size={20} /> Correct! The answer is <strong>{blankToken}</strong></>
-            ) : (
-              <><XCircle size={20} /> The correct answer was <strong>{blankToken}</strong></>
-            )}
+            <div className={`fb-result ${selected === blankToken ? 'fb-result--correct' : 'fb-result--wrong'}`}>
+              {selected === blankToken ? (
+                <><CheckCircle2 size={20} /> Correct! The answer is <strong>{blankToken}</strong></>
+              ) : (
+                <><XCircle size={20} /> The correct answer was <strong>{blankToken}</strong></>
+              )}
+            </div>
+
+            <button className="primary-btn fb-next-btn" onClick={handleNext}>
+              Next Question <ArrowRight size={18} />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

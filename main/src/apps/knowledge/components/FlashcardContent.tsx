@@ -61,11 +61,12 @@ export const FlashcardContent: React.FC<FlashcardContentProps> = ({ content, for
       components={{
         code({ node, inline, className, children, ...props }: any) {
           const match = /language-(\w+)/.exec(className || '');
-          // Default to java if no language specified and it looks like code
           const language = match ? match[1] : 'java';
+          const codeString = String(children).replace(/\n$/, '');
+          const isBlock = !inline || codeString.includes('\n');
 
-          return !inline && match ? (
-            <CopyableCodeBlock code={String(children).replace(/\n$/, '')} language={language} />
+          return isBlock ? (
+            <CopyableCodeBlock code={codeString} language={language} />
           ) : (
             <code className={`inline-code ${className || ''}`} {...props}>
               {children}

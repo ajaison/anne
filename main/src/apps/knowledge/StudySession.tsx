@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Loader, Flame, Zap } from 'lucide-react';
+import { ArrowLeft, Loader, Flame, Zap, ChevronLeft } from 'lucide-react';
 import { updateCardStats, supabase } from './services/supabase';
 import { syncService } from './services/sync';
 import { db } from './services/db';
@@ -94,6 +94,14 @@ const StudySession = () => {
       setCurrentIndex(prev => prev + 1);
     } else {
       setFinished(true);
+    }
+  };
+
+  const prevCard = () => {
+    if (currentIndex > 0) {
+      setShowAnswer(false);
+      setFirstAttempt(false);
+      setCurrentIndex(prev => prev - 1);
     }
   };
 
@@ -222,9 +230,16 @@ const StudySession = () => {
       {/* Header */}
       <header className="study-header">
         <div className="study-header-row">
-          <button className="close-btn" onClick={() => navigate(`/knowledge/deck/${deckId}`)}>
-            <ArrowLeft size={20} /> Stop
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button className="close-btn" onClick={() => navigate(`/knowledge/deck/${deckId}`)}>
+              <ArrowLeft size={20} /> Stop
+            </button>
+            {currentIndex > 0 && (
+              <button className="close-btn" onClick={prevCard} title="Go back to previous card">
+                <ChevronLeft size={20} /> Prev
+              </button>
+            )}
+          </div>
 
           {/* XP & Streak */}
           <div className="study-meta">

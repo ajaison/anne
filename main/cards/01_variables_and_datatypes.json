@@ -1,0 +1,198 @@
+[
+  {
+    "question": "What is the compiler result of the following Java snippet?\n```java\nbyte a = 10;\nbyte b = 20;\nbyte c = a + b;\nSystem.out.println(c);\n```",
+    "answer": "Compiler Error: incompatible types: possible lossy conversion from int to byte.\n\nIn Java, binary numeric promotion automatically promotes `byte`, `short`, and `char` operands to `int` when performing arithmetic operations (`+`, `-`, `*`, `/`). Therefore, `a + b` evaluates to an `int` result, which cannot be assigned to `byte c` without an explicit cast `(byte)(a + b)`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and prints 30",
+      "Compiler Error: variable c is already defined",
+      "Throws ClassCastException at runtime"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is printed by the following code snippet?\n```java\nbyte b = 127;\nb++;\nSystem.out.println(b);\n```",
+    "answer": "-128\n\nA `byte` in Java is a signed 8-bit integer with a range from -128 to 127. Incrementing 127 causes integer overflow, wrapping around to the minimum negative value `-128`. Note that compound assignment operators like `++` and `+=` perform an implicit cast.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "128",
+      "127",
+      "Compiler Error: possible lossy conversion"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the result of compiling and executing the following snippet?\n```java\nfloat f = 3.14;\nSystem.out.println(f);\n```",
+    "answer": "Compiler Error: incompatible types: possible lossy conversion from double to float.\n\nFloating-point literals in Java (e.g. `3.14`) are implicitly of type `double`. To declare a `float` literal, you must append an `f` or `F` suffix (e.g., `3.14f`) or explicitly cast it `(float) 3.14`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and prints 3.14",
+      "Compiles cleanly and prints 3.140000",
+      "Compiler Error: float literal syntax error"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of evaluating `a == b` and `c == d` in the following code?\n```java\nInteger a = 127;\nInteger b = 127;\nInteger c = 128;\nInteger d = 128;\nSystem.out.println((a == b) + \" \" + (c == d));\n```",
+    "answer": "true false\n\nJava caches `Integer` objects for values in the range `[-128, 127]` via the `IntegerCache`. Thus, `a` and `b` reference the exact same cached object in memory (`a == b` is `true`). For `128`, new distinct `Integer` objects are instantiated on the heap, so identity comparison `c == d` evaluates to `false`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "true true",
+      "false false",
+      "false true"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What happens when compiling the following code snippet?\n```java\nbyte b = 5;\nb += 10;\nb = b + 10;\n```",
+    "answer": "Compiler Error on line 3 (`b = b + 10;`).\n\nCompound assignment operators (e.g., `b += 10`) implicitly cast the right-hand side to the target type: `b = (byte)(b + 10)`. However, standard binary addition `b + 10` promotes `b` to `int`, producing an `int` result that cannot be assigned to `byte b` without an explicit cast.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and b becomes 25",
+      "Compiler Error on line 2 (`b += 10;`)",
+      "Throws ArithmeticException on line 3"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What does the following snippet print?\n```java\nchar c = 'A';\nSystem.out.println(c + 1);\n```",
+    "answer": "66\n\nWhen `c` (which has Unicode value `65` for `'A'`) is used with the binary `+` operator and integer literal `1`, `c` is promoted to `int`. The arithmetic operation evaluates `65 + 1 = 66`. Because the resulting type of `c + 1` is `int`, `System.out.println` prints the numeric integer `66`, not `'B'`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "B",
+      "A1",
+      "65"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "Why does the following code fail to compile?\n```java\nvar x = null;\n```",
+    "answer": "The compiler cannot infer a specific type for a local variable initialized to `null`.\n\nJava's `var` keyword (Local Variable Type Inference) requires the initializer to provide sufficient type information. Since `null` can be assigned to any reference type, the compiler cannot deduce the intended type of `x`.",
+    "card_type": "classic",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What is the result of executing `System.out.println(1.0 / 0.0)` vs `System.out.println(1 / 0)` in Java?",
+    "answer": "`1.0 / 0.0` prints `Infinity`, while `1 / 0` throws an `ArithmeticException: / by zero` at runtime.\n\nFloating-point arithmetic in Java follows IEEE 754 standards, where non-zero division by floating-point zero results in positive/negative `Infinity` or `NaN`. Integer arithmetic, however, throws `ArithmeticException` when dividing by integer `0`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Both expressions throw ArithmeticException at runtime",
+      "Both expressions print Infinity to standard output",
+      "1.0 / 0.0 throws ArithmeticException, while 1 / 0 prints Infinity"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of the following Java snippet?\n```java\nint x = 10;\nif (false && ++x > 0) {\n    // do nothing\n}\nSystem.out.println(x);\n```",
+    "answer": "10\n\nThe conditional AND operator `&&` is a short-circuit operator. Because the left operand `false` is evaluated first, the right operand `++x > 0` is never executed. Thus, `x` remains `10`.",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What happens when you compile the following method?\n```java\npublic void testScope() {\n    int a;\n    if (true) {\n        a = 5;\n    }\n    System.out.println(a);\n}\n```",
+    "answer": "Compiles cleanly and prints 5.\n\nBecause the `if (true)` condition is known at compile time to be unconditionally executed (constant expression), `javac` determines that local variable `a` is definitely assigned before `System.out.println(a)` is reached.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiler Error: variable a might not have been initialized",
+      "Compiles cleanly and prints 0",
+      "Throws NullPointerException at runtime"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the result of attempting to compile this method in Java?\n```java\npublic void checkShadowing() {\n    int x = 100;\n    {\n        int x = 200;\n        System.out.println(x);\n    }\n}\n```",
+    "answer": "Compiler Error: variable x is already defined in method checkShadowing().\n\nUnlike C or C++, Java does NOT allow local variable shadowing within nested block scopes inside the same method. Redeclaring `x` in a child block within the same method signature causes a compiler error.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and prints 200",
+      "Compiles cleanly and prints 100",
+      "Compiler Error: illegal initializer block syntax"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "Fill in the blank to declare an explicit long literal for the value 3 billion (exceeding standard signed 32-bit int bounds):\n```java\nlong distance = 3000000000___;\n```",
+    "answer": "L",
+    "card_type": "fill_in_the_blank",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What is the value of `b` after this statement executes?\n```java\nboolean b = Double.NaN == Double.NaN;\n```",
+    "answer": "false\n\nAccording to IEEE 754 and Java spec, `NaN` (Not-a-Number) is never equal to any value, including itself. To check if a floating point value is `NaN`, use `Double.isNaN(val)` instead of identity/equality operators.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "true",
+      "Compiler Error: cannot compare NaN using ==",
+      "Throws ArithmeticException at runtime"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of the following ternary expression?\n```java\nObject result = true ? 10 : 20.0;\nSystem.out.println(result.getClass().getName() + \" \" + result);\n```",
+    "answer": "java.lang.Double 10.0\n\nIn Java ternary expressions (`b ? e1 : e2`), if one expression is of type `int` (`10`) and the other is `double` (`20.0`), binary numeric promotion promotes the `int` operand to `double`. Thus `10` becomes double `10.0`, autoboxed to `java.lang.Double`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "java.lang.Integer 10",
+      "java.lang.Object 10.0",
+      "Compiler Error: incompatible ternary return types"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "Which of the following is a VALID placement of underscores in a numeric literal?",
+    "answer": "int val = 1_000_000;",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "int val = _1000_000;",
+      "int val = 1000000_;",
+      "int val = 0b_101000;"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What happens when executing the following snippet?\n```java\nfinal int[] numbers = {1, 2, 3};\nnumbers[0] = 99;\nSystem.out.println(numbers[0]);\n```",
+    "answer": "Compiles cleanly and prints 99.\n\nThe `final` keyword on a reference variable prevents reassignment of the variable reference itself (`numbers = new int[5]` is illegal). However, it does NOT make the underlying array object or its contents immutable.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiler Error: cannot assign a value to final variable numbers",
+      "Compiles cleanly but prints 1",
+      "Throws UnsupportedOperationException at runtime"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What keyword is used in Java 10+ to enable local variable type inference?",
+    "answer": "var",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": false
+  },
+  {
+    "question": "What is the result of casting a double with value `128.9` to `byte`?\n```java\ndouble d = 128.9;\nbyte b = (byte) d;\nSystem.out.println(b);\n```",
+    "answer": "-128\n\nTruncation converts double `128.9` to int `128`. Narrowing primitive conversion from `int` to `byte` strips all but the lower 8 bits. Binary representation of `128` (32-bit int) in 8 bits is `10000000`, which in 2's complement signed byte is `-128`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "128",
+      "129",
+      "Compiler Error: lossy conversion"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "Can `var` be used as a parameter type in a Java method signature e.g. `public void process(var x)`?",
+    "answer": "No. `var` is strictly limited to local variable declarations with initializers (and lambda formal parameters in Java 11+). It cannot be used for method parameters, return types, or class fields.",
+    "card_type": "classic",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What default value do uninitialized primitive `boolean` instance variables receive in a class?",
+    "answer": "false",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": false
+  }
+]

@@ -1,0 +1,190 @@
+[
+  {
+    "question": "What is the runtime exception thrown by line 3 in this snippet?\n```java\nObject[] arr = new String[3];\narr[0] = 100; // Integer object\n```",
+    "answer": "Throws ArrayStoreException at runtime.\n\nArrays in Java are covariant (e.g. `String[]` is a subtype of `Object[]`). However, the JVM enforces runtime type checks during element store operations. Storing an `Integer` object into an array backed by `String[]` throws an `ArrayStoreException`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Throws ClassCastException at runtime",
+      "Throws IllegalArgumentException at runtime",
+      "Compiles cleanly with no runtime exception"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is printed by `System.out.println(a.equals(b))` vs `System.out.println(Arrays.equals(a, b))`?\n```java\nint[] a = {1, 2, 3};\nint[] b = {1, 2, 3};\nSystem.out.println(a.equals(b) + \" \" + Arrays.equals(a, b));\n```",
+    "answer": "false true\n\nArrays do NOT override `Object.equals()`. Calling `a.equals(b)` performs reference identity comparison (`a == b`), which is `false`. `Arrays.equals(a, b)` compares elements sequentially for equality, returning `true`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "true true",
+      "false false",
+      "true false"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "Why does the following array declaration fail to compile?\n```java\nint[] arr = new int[3]{1, 2, 3};\n```",
+    "answer": "Compiler Error: cannot specify array dimension when using array initializer expression.\n\nWhen initializing an array with explicit values using `{1, 2, 3}`, you must NOT specify an explicit size inside `new int[]`. Syntax must be `new int[]{1, 2, 3}` or `int[] arr = {1, 2, 3}`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiles cleanly and creates array of size 3",
+      "Throws InvalidArraySyntaxException at runtime",
+      "Compiler Error: missing semicolon"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output when printing an array directly using `System.out.println(arr)`?\n```java\nint[] arr = {10, 20};\nSystem.out.println(arr);\n```",
+    "answer": "Prints type indicator and hex hash code e.g. [I@15db9742.\n\nArrays inherit `Object.toString()`, which formats as `[<type>@<hexHashCode>`. To print array elements, use `Arrays.toString(arr)` for 1D arrays or `Arrays.deepToString(arr)` for multidimensional arrays.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "[10, 20]",
+      "{10, 20}",
+      "Compiler Error: cannot print array directly"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of the following multi-dimensional array code?\n```java\nint[][] grid = new int[3][];\ngrid[0] = new int[]{1, 2};\ngrid[1] = new int[]{3, 4, 5};\nSystem.out.println(grid.length + \" \" + grid[1].length);\n```",
+    "answer": "3 3",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "Fill in the correct method to compare nested/multidimensional arrays for deep content equality:\n```java\nString[][] a = {{\"A\"}};\nString[][] b = {{\"A\"}};\nboolean match = Arrays._____________(a, b);\n```",
+    "answer": "deepEquals",
+    "card_type": "fill_in_the_blank",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What is the result of executing `Arrays.binarySearch()` on an UNSORTED array?",
+    "answer": "The behavior and return value are undefined.\n\n`Arrays.binarySearch()` requires the array to be sorted in ascending order prior to calling. If the array is unsorted, binary search produces unpredictable results.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Throws UnsortedArrayException at runtime",
+      "Automatically sorts the array and returns the correct index",
+      "Returns -1 always"
+    ],
+    "is_code": false
+  },
+  {
+    "question": "What is the output of `Arrays.binarySearch()` when an element is NOT present in a sorted array?\n```java\nint[] nums = {10, 20, 30, 40};\nint index = Arrays.binarySearch(nums, 25);\nSystem.out.println(index);\n```",
+    "answer": "-3\n\nIf the element is not found, `Arrays.binarySearch()` returns `-(insertion point) - 1`. For `25`, the insertion point is index `2` (where `25` would be inserted between `20` and `30`). Thus `-2 - 1 = -3`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "-1",
+      "-2",
+      "2"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What are the default values for elements in a newly instantiated `boolean[]` and `String[]` array?",
+    "answer": "false and null\n\nPrimitive numeric elements default to `0`/`0.0`, `boolean` elements default to `false`, and all object reference elements default to `null`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "false and \"\"",
+      "true and null",
+      "0 and null"
+    ],
+    "is_code": false
+  },
+  {
+    "question": "What is the result of compiling the following variable declarations?\n```java\nint[] a, b[];\n```",
+    "answer": "a is a 1D array (int[]), and b is a 2D array (int[][]).\n\nThe `[]` after `int` applies to all variables in the declaration line (`a` and `b`). Adding additional `[]` to `b` makes `b` a 2D array.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Both a and b are 1D arrays (int[])",
+      "Both a and b are 2D arrays (int[][])",
+      "Compiler Error: invalid array declaration syntax"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What happens when executing `System.arraycopy()` with overlapping regions in the SAME array?\n```java\nint[] arr = {1, 2, 3, 4, 5};\nSystem.arraycopy(arr, 0, arr, 1, 4);\nSystem.out.println(Arrays.toString(arr));\n```",
+    "answer": "[1, 1, 2, 3, 4]\n\n`System.arraycopy()` handles overlapping source and destination regions in the same array safely as if copying to a temporary buffer first. Index `0` (`1`) is copied to `1`, index `1` (`2`) to `2`, etc.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "[1, 1, 1, 1, 1]",
+      "Throws ArrayStoreException at runtime",
+      "Throws IndexOutOfBoundsException at runtime"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of `Arrays.copyOf()` when target length is GREATER than original length?\n```java\nint[] orig = {1, 2};\nint[] expanded = Arrays.copyOf(orig, 4);\nSystem.out.println(Arrays.toString(expanded));\n```",
+    "answer": "[1, 2, 0, 0]",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of calling `.clone()` on a 1D primitive array?\n```java\nint[] orig = {5, 10};\nint[] copy = orig.clone();\ncopy[0] = 99;\nSystem.out.println(orig[0] + \" \" + copy[0]);\n```",
+    "answer": "5 99\n\nCalling `.clone()` on a 1D array creates a new separate array object in heap memory. Modifying elements of `copy` does not affect `orig`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "99 99",
+      "5 5",
+      "Compiler Error: clone() not visible"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What happens when calling `.clone()` on a 2D object or array of arrays?\n```java\nint[][] orig = {{1, 2}};\nint[][] copy = orig.clone();\ncopy[0][0] = 99;\nSystem.out.println(orig[0][0]);\n```",
+    "answer": "99\n\nArray `.clone()` produces a shallow copy of the outer array. The sub-array references stored in `copy[0]` still point to the exact same inner array objects in memory as `orig[0]`. Thus mutating inner elements affects both.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "1",
+      "0",
+      "Compiler Error: cannot clone 2D array"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What is the syntax property used to access array size in Java?",
+    "answer": "arr.length",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": false
+  },
+  {
+    "question": "What is the result of compiling and running this code?\n```java\nint[] arr = new int[0];\nSystem.out.println(arr.length);\n```",
+    "answer": "Compiles cleanly and prints 0.\n\nJava allows zero-length arrays (`new int[0]`). They are valid array instances in memory with `length == 0`.",
+    "card_type": "multiple_choice",
+    "distractors": [
+      "Compiler Error: array size must be greater than 0",
+      "Throws NegativeArraySizeException at runtime",
+      "Compiles cleanly and prints null"
+    ],
+    "is_code": true
+  },
+  {
+    "question": "What exception is thrown when attempting to instantiate an array with a negative size e.g. `new int[-5]`?",
+    "answer": "NegativeArraySizeException",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": false
+  },
+  {
+    "question": "How are varargs parameters (`void printNums(int... nums)`) represented inside the method body?",
+    "answer": "As a standard single-dimensional array (`int[] nums`).",
+    "card_type": "classic",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "What is the output of the following snippet?\n```java\nint[] arr = {10, 20, 30, 40};\nSystem.out.println(arr[arr.length - 1]);\n```",
+    "answer": "40",
+    "card_type": "type_answer",
+    "distractors": [],
+    "is_code": true
+  },
+  {
+    "question": "Why does `List<String> list = new ArrayList<String>(); List<Object> objList = list;` fail to compile while `String[] sArr = new String[1]; Object[] oArr = sArr;` compiles cleanly?",
+    "answer": "Arrays in Java are covariant (`String[]` IS-A `Object[]`), whereas generic collections in Java are invariant (`List<String>` is NOT a `List<Object>`).",
+    "card_type": "classic",
+    "distractors": [],
+    "is_code": true
+  }
+]

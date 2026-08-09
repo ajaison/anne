@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, XCircle, Send } from 'lucide-react';
+import { CheckCircle2, XCircle, Send, ArrowRight } from 'lucide-react';
 import { FlashcardContent } from './FlashcardContent';
 
 interface TypeAnswerCardProps {
@@ -51,11 +51,26 @@ const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onRes
     const correct = fuzzyMatch(typed, answer);
     setIsCorrect(correct);
     setSubmitted(true);
-    setTimeout(() => onResult(correct), correct ? 1200 : 2500);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSubmit();
+  const handleNext = () => {
+    if (!submitted) return;
+    onResult(isCorrect);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (submitted && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        handleNext();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [submitted, isCorrect]);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !submitted) handleSubmit();
   };
 
   return (
@@ -73,7 +88,7 @@ const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onRes
             placeholder="Type your answer..."
             value={typed}
             onChange={e => setTyped(e.target.value)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleInputKeyDown}
             disabled={submitted}
             autoFocus
             autoComplete="off"
@@ -88,32 +103,38 @@ const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onRes
       <AnimatePresence>
         {submitted && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`ta-result ${isCorrect ? 'ta-result--correct' : 'ta-result--wrong'}`}
+            className="ta-result-wrapper"
           >
-            {isCorrect ? (
-              <div className="ta-result-inner">
-                <CheckCircle2 size={22} />
-                <span>Correct!</span>
-              </div>
-            ) : (
-              <div className="ta-result-inner">
-                <XCircle size={22} />
-                <div className="ta-diff">
-                  <div className="ta-diff-row">
-                    <span className="ta-diff-label">You wrote:</span>
-                    <span className="ta-diff-wrong">{typed}</span>
-                  </div>
-                  <div className="ta-diff-row">
-                    <span className="ta-diff-label">Correct answer:</span>
-                    <span className="ta-diff-correct">
-                      <FlashcardContent content={answer} />
-                    </span>
+            <div className={`ta-result ${isCorrect ? 'ta-result--correct' : 'ta-result--wrong'}`}>
+              {isCorrect ? (
+                <div className="ta-result-inner">
+                  <CheckCircle2 size={22} />
+                  <span>Correct!</span>
+                </div>
+              ) : (
+                <div className="ta-result-inner">
+                  <XCircle size={22} />
+                  <div className="ta-diff">
+                    <div className="ta-diff-row">
+                      <span className="ta-diff-label">You wrote:</span>
+                      <span className="ta-diff-wrong">{typed}</span>
+                    </div>
+                    <div className="ta-diff-row">
+                      <span className="ta-diff-label">Correct answer:</span>
+                      <span className="ta-diff-correct">
+                        <FlashcardContent content={answer} />
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            <button className="primary-btn ta-next-btn" onClick={handleNext}>
+              Next Question <ArrowRight size={18} />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

@@ -204,4 +204,4 @@ const MultipleChoiceCard: React.FC<MultipleChoiceCardProps> = ({ card, allCards,
   );
 };
 
-export default MultipleChoiceCard;d;
+export default MultipleChoiceCard;

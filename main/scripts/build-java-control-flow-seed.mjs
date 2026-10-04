@@ -10,18 +10,23 @@ if (!inputPath.startsWith('cards/pathways/') || !outputPath.startsWith('supabase
 const pack = JSON.parse(readFileSync(new URL('../' + inputPath, import.meta.url), 'utf8'));
 if (pack.topics.length !== 1 || pack.topics[0].key !== 'control-flow') throw new Error('Expected a single Control flow topic.');
 const batches = {
-  'java-control-flow-depth-batch-1': { concepts: 8, output: 'supabase/seeds/java_control_flow_depth_1.sql', header: `-- Java 27 Control flow depth batch 1: 40 NEW MC cards, 8 reused concepts.
+  'java-control-flow-depth-batch-1': { count: 40, concepts: 8, output: 'supabase/seeds/java_control_flow_depth_1.sql', header: `-- Java 27 Control flow depth batch 1: 40 NEW MC cards, 8 reused concepts.
 -- After the starter: Control flow has 8 concepts / 64 questions.
 -- This batch alone on an empty topic: 8 concepts / 40 questions.` },
-  'java-control-flow-depth-batch-2': { concepts: 9, output: 'supabase/seeds/java_control_flow_depth_2.sql', header: `-- Java 27 Control flow depth batch 2: 40 NEW MC cards, 8 reused concepts, 1 new concept.
+  'java-control-flow-depth-batch-2': { count: 40, concepts: 9, output: 'supabase/seeds/java_control_flow_depth_2.sql', header: `-- Java 27 Control flow depth batch 2: 40 NEW MC cards, 8 reused concepts, 1 new concept.
 -- After starter + depth batches 1 and 2: Control flow has 9 concepts / 104 questions.
 -- This batch alone on an empty topic: 9 concepts / 40 questions.` },
 };
+batches['java-control-flow-progression-1'] = { count: 30, concepts: 9,
+  output: 'supabase/seeds/java_control_flow_progression_1.sql',
+  header: `-- Java 27 Control flow teaching progression: 30 NEW introductory MC cards.
+-- With starter + both depth packs: 9 concepts / 134 questions.
+-- Adds nullable learning_order metadata; preserves all existing study records.` };
 const metadata = batches[pack.id];
 if (!metadata) throw new Error('Add reviewed count/header metadata before generating another batch.');
 if (outputPath !== metadata.output) throw new Error('Use the reviewed output path for this batch to preserve earlier SQL.');
 const count = pack.topics[0].concepts.reduce((sum, concept) => sum + concept.cards.length, 0);
-if (count !== 40 || pack.topics[0].concepts.length !== metadata.concepts) throw new Error('Reviewed batch counts changed.');
+if (count !== metadata.count || pack.topics[0].concepts.length !== metadata.concepts) throw new Error('Reviewed batch counts changed.');
 const seedHeader = metadata.header;
 const payload = JSON.stringify({ ...pack, topics: pack.topics.map(topic => ({ ...topic,
   concepts: topic.concepts.map(concept => ({ ...concept,
@@ -30,7 +35,7 @@ const payload = JSON.stringify({ ...pack, topics: pack.topics.map(topic => ({ ..
 })) }, null, 2);
 if (payload.includes('$java_pack$') || payload.includes('$seed$')) throw new Error('Payload conflicts with SQL dollar delimiter.');
 
-const sql = `${seedHeader}
+let sql = `${seedHeader}
 -- Generated from ${inputPath}. Run in Supabase SQL Editor.
 -- Requires the already-installed concept-tracking migration. No deletes or updates.
 -- Repeated runs preserve all existing card edits, IDs, links and review schedules.
@@ -228,5 +233,71 @@ WHERE p.id = current_setting('anne.control_flow_batch_project')::uuid
 COMMIT;
 `;
 
+if (pack.id === 'java-control-flow-progression-1') {
+  sql = sql.replace('No deletes or updates.', 'Only guarded curriculum metadata updates; no deletes.');
+  const sequence = JSON.parse(readFileSync(new URL('../cards/pathways/java_control_flow_sequence.json', import.meta.url), 'utf8'));
+  const sequencePayload = JSON.stringify(sequence, null, 2);
+  if (sequencePayload.includes('$learning_sequence$')) throw new Error('Sequence delimiter collision.');
+  sql = sql.replace('BEGIN;\nDO $seed$', `BEGIN;
+SELECT pg_advisory_xact_lock(20261004, 12);
+-- Metadata only: null preserves the behavior of decks without a teaching order.
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS learning_order integer;
+ALTER TABLE public.concepts ADD COLUMN IF NOT EXISTS learning_order integer;
+DO $seed$`);
+  const ordering = `
+-- Apply ordering to known cards without editing content, links or learning data.
+DO $ordering$
+DECLARE
+  sequence jsonb := $learning_sequence$
+${sequencePayload}
+$learning_sequence$::jsonb;
+  v_project uuid := current_setting('anne.control_flow_batch_project')::uuid;
+  v_deck uuid := current_setting('anne.control_flow_batch_deck')::uuid;
+  group_item jsonb;
+  item jsonb;
+  v_card uuid;
+  v_concept uuid;
+  v_parents integer;
+BEGIN
+  FOR group_item IN SELECT value FROM jsonb_array_elements(sequence->'concepts') LOOP
+    -- Prefer stable concept IDs; only infer an adopted parent when unambiguous.
+    SELECT id INTO v_concept FROM public.concepts
+      WHERE id = md5(v_deck::text || ':java-foundations-v1:concept:' || (group_item->>'key'))::uuid AND deck_id = v_deck;
+    IF v_concept IS NULL THEN
+      SELECT count(DISTINCT q.concept_id) INTO v_parents FROM public.cards q
+        JOIN public.concepts c ON c.id = q.concept_id AND c.deck_id = v_deck
+        WHERE q.deck_id = v_deck AND q.id IN (
+          SELECT md5(v_project::text || ':java-foundations-v1:card:control-flow:' ||
+            (group_item->>'key') || ':' || (x->>'key'))::uuid
+          FROM jsonb_array_elements(group_item->'cards') x);
+      IF v_parents = 1 THEN
+        SELECT DISTINCT q.concept_id INTO v_concept FROM public.cards q
+          JOIN public.concepts c ON c.id = q.concept_id AND c.deck_id = v_deck
+          WHERE q.deck_id = v_deck AND q.id IN (
+            SELECT md5(v_project::text || ':java-foundations-v1:card:control-flow:' ||
+              (group_item->>'key') || ':' || (x->>'key'))::uuid
+            FROM jsonb_array_elements(group_item->'cards') x);
+      END IF;
+    END IF;
+    UPDATE public.concepts SET learning_order = (group_item->>'learning_order')::integer
+      WHERE id = v_concept AND deck_id = v_deck AND learning_order IS NULL;
+    -- Rename only untouched authored labels; custom titles/objectives survive.
+    UPDATE public.concepts SET title = group_item->>'title'
+      WHERE id = v_concept AND deck_id = v_deck
+        AND title = group_item->>'original_title' AND objective = group_item->>'original_objective';
+    FOR item IN SELECT value FROM jsonb_array_elements(group_item->'cards') LOOP
+      v_card := md5(v_project::text || ':java-foundations-v1:card:control-flow:' ||
+        (group_item->>'key') || ':' || (item->>'key'))::uuid;
+      UPDATE public.cards SET learning_order = (item->>'learning_order')::integer
+        WHERE id = v_card AND deck_id = v_deck AND concept_id = v_concept AND learning_order IS NULL;
+    END LOOP;
+  END LOOP;
+END;
+$ordering$;
+NOTIFY pgrst, 'reload schema';
+`;
+  sql = sql.replace('-- Read-only summary, scoped', ordering + '\n-- Read-only summary, scoped');
+  sql = sql.replace('AS questions,', 'AS questions,\n       (SELECT count(*) FROM public.cards q WHERE q.deck_id = d.id AND q.learning_order IS NOT NULL) AS ordered_questions,');
+}
 writeFileSync(new URL('../' + outputPath, import.meta.url), sql);
 console.log(`Generated ${outputPath}`);

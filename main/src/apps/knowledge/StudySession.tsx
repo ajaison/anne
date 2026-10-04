@@ -11,8 +11,12 @@ import type { ReviewAttempt } from './services/reviewSaver';
 import { reviewIntervalLabel, scheduleReview } from './services/scheduler';
 import { cardsForConcept } from './services/conceptEvidence';
 import { choiceProblem } from './services/multipleChoice';
+import { orderNewCards } from './services/learningOrder';
 import { loadTopicCards } from './services/concepts';
-import { conceptUrl, topicUrl } from './curricula/pathways';
+import { conceptUrl, topicUrl, getPathway } from './curricula/pathways';
+import { loadPathwayData } from './services/pathways';
+import { resolvePathwayTopics } from './services/pathwayProgress';
+import { dailyStudyQueue, DAILY_SESSION_LIMIT } from './services/dailyStudy';
 import { FlashcardContent } from './components/FlashcardContent';
 import MultipleChoiceCard from './components/MultipleChoiceCard';
 import FillBlankCard from './components/FillBlankCard';
@@ -24,11 +28,12 @@ import './KnowledgeApp.css';
 const RATINGS: ReviewRating[] = ['again', 'hard', 'good', 'easy'];
 
 const StudySession = () => {
-  const { deckId } = useParams<{ deckId: string }>();
+  const { deckId, projectId, pathwayId } = useParams<{ deckId: string; projectId: string; pathwayId: string }>();
+  const daily = !!projectId;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const conceptId = searchParams.get('conceptId');
-  const backPath = conceptId ? (searchParams.get('returnToConcept') === '1'
+  const backPath = daily ? `/knowledge/project/${projectId}/pathway/${pathwayId}` : conceptId ? (searchParams.get('returnToConcept') === '1'
     ? conceptUrl(deckId!, conceptId, searchParams.get('pathway'))
     : topicUrl(deckId!, searchParams.get('pathway'))) : `/knowledge/deck/${deckId}`;
 
@@ -53,6 +58,10 @@ const StudySession = () => {
   const [online, setOnline] = useState(navigator.onLine);
   const [sessionRun, setSessionRun] = useState(0);
   const saverRef = useRef<ReturnType<typeof makeReviewSaver> | null>(null);
+  const saversRef = useRef(new Map<string, ReturnType<typeof makeReviewSaver>>());
+  const [dailyDecks, setDailyDecks] = useState<Deck[]>([]);
+  const [dailyTitle, setDailyTitle] = useState('');
+  const [dailyNote, setDailyNote] = useState('');
 
   useEffect(() => {
     const updateOnline = () => setOnline(navigator.onLine);
@@ -67,7 +76,7 @@ const StudySession = () => {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      if (!deckId) return;
+      if (!deckId && !projectId) return;
       setLoading(true);
       setLoadError(null);
       setSaveError(null);
@@ -82,6 +91,35 @@ const StudySession = () => {
       setBestStreak(0);
       setXpFlash(null);
       try {
+        if (daily) {
+          if (!navigator.onLine) throw new Error('Reconnect to load Study today.');
+          const pathway = getPathway(pathwayId);
+          if (!pathway || !projectId) throw new Error('This pathway could not be found.');
+          const data = await loadPathwayData(projectId);
+          if (cancelled) return;
+          const decks = resolvePathwayTopics(pathway, data.decks, projectId).flatMap(topic => topic.decks);
+          const savers = new Map(decks.map(deck => [deck.id, makeReviewSaver(deck.id)]));
+          const pending = [...savers.values()].map(saver => saver.getPending()).filter((item): item is ReviewAttempt => !!item)
+            .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+          const queue = dailyStudyQueue(pathway, projectId, data.decks, data.concepts, data.cards, data.reviews);
+          const pendingIds = new Set(pending.map(item => item.card.id));
+          // Retain every unfinished save even in an exceptional backlog; otherwise
+          // restored reviews occupy slots within the normal session limit.
+          const sessionCards = [...pending.map(item => item.card), ...queue.cards.filter(card => !pendingIds.has(card.id))]
+            .slice(0, Math.max(DAILY_SESSION_LIMIT, pending.length));
+          saversRef.current = savers;
+          saverRef.current = sessionCards.length ? savers.get(sessionCards[0].deck_id)! : null;
+          setDeck(null);
+          setDailyDecks(decks);
+          setDailyTitle(`${data.project.name} · Study today`);
+          setDailyNote(pending.length ? 'Finish saving your restored reviews before continuing today’s session.' :
+            `${queue.dueCount} due reviews · ${queue.newCount} new questions${queue.remainingDue ? ` · ${queue.remainingDue} more reviews remain` : ''}`);
+          setPendingReview(pending[0]);
+          if (pending.length) setSaveError('An unfinished review was restored. Retry to save its original result.');
+          setCards(sessionCards);
+          return;
+        }
+        if (!deckId) return;
         const saver = makeReviewSaver(deckId);
         saverRef.current = saver;
         const pending = saver.getPending();
@@ -107,7 +145,7 @@ const StudySession = () => {
         const now = new Date();
         const due = cardData.filter(c => new Date(c.next_review) <= now && c.repetitions > 0)
           .sort((a, b) => Date.parse(a.next_review) - Date.parse(b.next_review));
-        const unseen = cardData.filter(c => c.repetitions === 0).sort(() => Math.random() - 0.5);
+        const unseen = orderNewCards(cardData.filter(c => c.repetitions === 0));
         let sessionCards = [...due, ...unseen];
         if (!sessionCards.length && cardData.length) {
           sessionCards = [...cardData].sort((a, b) => a.interval - b.interval || a.ease_factor - b.ease_factor);
@@ -128,7 +166,7 @@ const StudySession = () => {
     };
     void load();
     return () => { cancelled = true; };
-  }, [deckId, conceptId, sessionRun]);
+  }, [deckId, conceptId, sessionRun, projectId, pathwayId, daily]);
 
   const activeCard = cards[currentIndex];
   const currentMode: StudyMode = resolveStudyMode(activeCard?.card_type);
@@ -139,7 +177,15 @@ const StudySession = () => {
 
   const advanceCard = () => {
     setShowAnswer(false);
-    if (currentIndex < cards.length - 1) setCurrentIndex(currentIndex + 1);
+    if (currentIndex < cards.length - 1) {
+      if (daily) {
+        saverRef.current = saversRef.current.get(cards[currentIndex + 1].deck_id)!;
+        const pending = saverRef.current.getPending();
+        setPendingReview(pending);
+        setSaveError(pending ? 'An unfinished review was restored. Retry to save its original result.' : null);
+      }
+      setCurrentIndex(currentIndex + 1);
+    }
     else setFinished(true);
   };
 
@@ -152,12 +198,14 @@ const StudySession = () => {
   const prevCard = () => {
     if (currentIndex > 0 && !saverRef.current?.getPending()) {
       setShowAnswer(false);
+      if (daily) saverRef.current = saversRef.current.get(cards[currentIndex - 1].deck_id)!;
       setCurrentIndex(currentIndex - 1);
     }
   };
 
   const submitReview = async (card: Card, rating: ReviewRating, result: SessionCardResult) => {
     const saver = saverRef.current;
+    const sessionSavers = saversRef.current;
     if (!saver || saver.isBusy()) return;
     setSaving(true);
     setSaveError(null);
@@ -183,7 +231,7 @@ const StudySession = () => {
       setPendingReview(saver.getPending());
       setSaveError(error instanceof Error ? error.message : 'Review could not be saved. Retry to finish.');
     } finally {
-      if (saverRef.current === saver) setSaving(false);
+      if (saverRef.current === saver || (daily && saversRef.current === sessionSavers)) setSaving(false);
     }
   };
 
@@ -221,7 +269,9 @@ const StudySession = () => {
   if (finished) return (
     <SessionSummary
       result={sessionResult}
-      deckName={deck?.name || 'Deck'}
+      deckName={daily ? dailyTitle : deck?.name || 'Deck'}
+      backLabel={daily ? 'Back to pathway' : undefined}
+      againLabel={daily ? 'Next session' : undefined}
       onStudyAgain={() => {
         setSessionRun(previous => previous + 1);
       }}
@@ -235,15 +285,16 @@ const StudySession = () => {
       <button className="primary-btn" onClick={() => setSessionRun(previous => previous + 1)}>Retry loading</button>
       <button className="close-btn" disabled={saving} onClick={() => {
               if (!saverRef.current?.isBusy()) navigate(backPath);
-            }}>Back to Deck</button>
+            }}>{daily ? 'Back to pathway' : 'Back to Deck'}</button>
     </div>
   );
 
   // --- EMPTY ---
   if (cards.length === 0) return (
     <div className="study-container empty">
-      <h2>No cards found. Add some knowledge first!</h2>
-      <button className="primary-btn" onClick={() => navigate(backPath)}>Back to Deck</button>
+      <h2>{daily ? 'You’re caught up on ready questions.' : 'No cards found. Add some knowledge first!'}</h2>
+      {daily && <p>There are no due reviews or new ready questions right now. Open a topic for extra practice, or add more questions.</p>}
+      <button className="primary-btn" onClick={() => navigate(backPath)}>{daily ? 'Back to pathway' : 'Back to Deck'}</button>
     </div>
   );
 
@@ -306,6 +357,10 @@ const StudySession = () => {
       </AnimatePresence>
 
       {/* Mode badge */}
+      {daily && <div className="study-save-notice">
+        <strong>{dailyTitle}</strong><p>{dailyNote}</p>
+        <p>Topic: {dailyDecks.find(deck => deck.id === activeCard.deck_id)?.name ?? 'Restored review'}</p>
+      </div>}
       <div className="study-mode-badge">
         {currentMode === 'multiple_choice' && '🎯 Multiple Choice'}
         {currentMode === 'fill_blank' && '✏️ Fill in the Blank'}

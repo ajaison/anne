@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { db } from './db';
+import { compareLearningOrder } from './learningOrder';
 import type { Card, Concept, ConceptReview, Deck } from '../types';
 
 const checkError = (error: { code?: string; message: string } | null) => {
@@ -18,7 +19,7 @@ export const loadTopicCards = async (deckId: string, conceptId?: string) => {
     const page = await query.range(offset, offset + 499);
     checkError(page.error);
     cards.push(...page.data as Card[]);
-    if (page.data!.length < 500) return cards;
+    if (page.data!.length < 500) return cards.sort(compareLearningOrder);
   }
 };
 
@@ -29,7 +30,10 @@ const loadConcepts = async (deckId: string) => {
       .order('created_at').order('id').range(offset, offset + 499);
     checkError(page.error);
     concepts.push(...page.data as Concept[]);
-    if (page.data!.length < 500) return concepts;
+    if (page.data!.length < 500) return concepts.sort((a, b) => {
+      if (a.learning_order != null || b.learning_order != null) return compareLearningOrder(a, b);
+      return Date.parse(a.created_at) - Date.parse(b.created_at) || a.id.localeCompare(b.id);
+    });
   }
 };
 

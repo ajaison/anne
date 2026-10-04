@@ -20,6 +20,7 @@ const App = () => {
         <Route path="/knowledge" element={<KnowledgeApp />} />
         <Route path="/knowledge/project/:projectId" element={<ProjectView />} />
         <Route path="/knowledge/project/:projectId/pathway/:pathwayId" element={<PathwayView />} />
+        <Route path="/knowledge/project/:projectId/pathway/:pathwayId/study" element={<StudySession />} />
         <Route path="/knowledge/deck/:deckId" element={<DeckView />} />
         <Route path="/knowledge/deck/:deckId/concepts" element={<TopicView />} />
         <Route path="/knowledge/deck/:deckId/concept/:conceptId" element={<ConceptView />} />

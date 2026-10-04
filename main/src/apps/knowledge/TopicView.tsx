@@ -55,7 +55,7 @@ const TopicView = () => {
         <ArrowLeft size={20} /> {pathway ? 'Back to pathway' : 'Back to deck'}
       </button>
       <h1>{data?.deck.name ?? 'Topic concepts'}</h1>
-      <p className="project-subtitle">Group different questions by the skill they test.</p>
+      <p className="project-subtitle">Learn each subtopic from the basics, then build up to practical cases.</p>
       <Link className="back-button" to={`/knowledge/deck/${deckId}${pathway ? `?pathway=${pathway.id}` : ''}`}>Manage questions</Link>
     </header>
     <main className="knowledge-content topic-content">
@@ -63,7 +63,7 @@ const TopicView = () => {
         <div className="project-form-card"><p role="alert">{error}</p>
           <button className="primary-btn" onClick={() => setReload(value => value + 1)}>Retry</button>
         </div> : data && <>
-          <p>Results below show multiple-choice practice. Mastery will require successful reviews across separate days.</p>
+          <p>New questions follow the teaching order where available. Due reviews come first in practice. Results show multiple-choice practice, not demonstrated mastery.</p>
           {saveError && <p role="alert" className="topic-error">{saveError}</p>}
           <div className="topic-concepts">
             {data.concepts.map(concept => {

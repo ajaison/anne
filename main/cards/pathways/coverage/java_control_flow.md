@@ -1,10 +1,11 @@
 # Topic 2 coverage audit: Control flow
 
 Updated 2026-10-04. Active next topic at the user's request. **Incomplete**.
-Starter + depth batches 1 and 2: 9 concepts / 104 authored MC questions.
+Starter + depth batches 1/2 + progression 1: 9 concepts / 134 authored MC questions.
 Depth batch 2 adds forty questions and one reference-pattern concept; baseline
 validated with SQL supplied.
-Previous seed import and practice acceptance remain unreported.
+User reports adding many cards/concepts; exact per-pack counts and practice
+acceptance remain uninspected. Previous depth-2 JSON import failure was reported.
 
 ## Starter inventory and initial gaps (audit before depth batch 1)
 
@@ -244,3 +245,52 @@ All structured packs total **18 concepts / 200 authored MC questions**:
 Types 9/96; Control flow 9/104. Neither topic nor Foundations is complete.
 
 [Import instructions and testing steps](../../../supabase/seeds/JAVA_CONTROL_FLOW_DEPTH_2.md).
+
+## Teaching progression audit — 2026-10-04
+
+User identified a learning gap: detailed edge cases were overrepresented before
+novice instruction. Re-sequenced all 104 existing cards without replacing them
+and added thirty distinct introductory teaching steps. The nine existing IDs
+remain subtopic bundles with clearer default labels. Cross-cutting scope stays
+a final bundle; no reviewed cards/concepts were merged or relinked.
+
+Source pack: `java_control_flow_progression_1.json` (30 new cards).
+Sequence: `java_control_flow_sequence.json` (134 explicit positions).
+Consolidated teaching view: `java_control_flow_curriculum.json` (134 cards).
+SQL: `supabase/seeds/java_control_flow_progression_1.sql`.
+
+| Bundle | New introductory steps | Cumulative cards |
+| --- | --- | ---: |
+| If/else | Condition syntax, false skip, two alternatives, else-if and block grouping | 19 |
+| For/enhanced-for | Header lifecycle, values visited, repetition and ordinary array traversal | 18 |
+| While/do | Progress, reevaluation, do syntax and positive-input contrast | 13 |
+| Break/continue | Exit, skip and choosing between them | 12 |
+| Nested loops/labels | Ordinary nested visits and label meaning before transfers | 10 |
+| Switch statements | Matching, default, break boundary and arrow statement | 17 |
+| Switch expressions | Result assignment, block yield and default result coverage | 17 |
+| Reference patterns | Basic instanceof binding and successful when guard | 14 |
+| Scope/reachability | Block-local use, outer-local assignment and method return | 14 |
+
+New questions have exact verification snippets, teaching feedback and official
+Java 27 section links. Existing packs/SQL remain unchanged. This update adds
+internal positions and guarded default-title changes, not a new difficulty UI.
+All Foundations packs total 18 concepts / 230 authored questions (Types 9/96,
+Control flow 9/134). User import/practice checks pending.
+
+Remaining rule gaps in the preceding audit still apply. Task-form audit:
+output prediction and compiler-error recognition remain common; future batches
+should add more code completion, minimal-repair and requirement-to-code/design
+choices. New introductory cards include syntax/meaning explanations and ordinary
+contrasts. Do not dilute coverage with renamed traces or infer independent coding
+ability from MC results. Future concepts must have a complete introductory route
+before adding advanced cases. New-vs-review ordering is separate from scheduling.
+
+[Progression import and acceptance steps](../../../supabase/seeds/JAVA_CONTROL_FLOW_PROGRESSION.md).
+
+Validation result: 30/30 new snippets passed JDK 25.0.2 --release 21, without
+previews. All 57 Knowledge tests passed, including the 10 focused progression/
+queue/content checks; the strengthened consolidated-view check also passed in
+the final focused rerun. Production build and targeted ESLint passed. Build
+retains existing large-bundle/stale Browserslist warnings. Java 27 execution,
+SQL execution against PostgreSQL/Supabase and browser/mobile behavior remain
+unverified. No live database connection or credentials were used.

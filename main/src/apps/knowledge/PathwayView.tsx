@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Plus } from 'lucide-react';
 import { getPathway, topicUrl } from './curricula/pathways';
 import { loadPathwayData, setupPathwayTopics } from './services/pathways';
 import { resolvePathwayTopics, summarizeTopic } from './services/pathwayProgress';
+import { dailyStudyQueue } from './services/dailyStudy';
 import './KnowledgeApp.css';
 import './PathwayView.css';
 
@@ -55,6 +56,8 @@ const PathwayView = () => {
   const practisedConcepts = topics.reduce((sum, topic) => sum + topic.progress.practisedConcepts, 0);
   const dueQuestions = topics.reduce((sum, topic) => sum + topic.progress.dueQuestions, 0);
   const missingTopics = topics.filter(topic => !topic.decks.length).length;
+  const today = pathway && data ? dailyStudyQueue(pathway, data.project.id, data.decks,
+    data.concepts, data.cards, data.reviews) : null;
   const nextTopic = topics.find(topic => topic.progress.dueQuestions > 0) ??
     topics.find(topic => topic.progress.readyQuestions > 0 && topic.progress.practisedConcepts < topic.progress.concepts) ??
     topics.find(topic => topic.progress.readyQuestions > 0);
@@ -87,6 +90,9 @@ const PathwayView = () => {
           <p className="pathway-note">Concepts practised shows coverage of the concepts you’ve added. Ready questions are complete multiple-choice questions linked to those concepts. Mastery needs evidence across separate days and is not scored yet.</p>
           {saveError && <p className="topic-error" role="alert">{saveError}</p>}
           <div className="pathway-actions">
+            <Link className="study-btn" to={`/knowledge/project/${projectId}/pathway/${pathway.id}/study`}>
+              <BookOpen size={18} /> Study today
+            </Link>
             {!!missingTopics && <button className="study-btn" disabled={busy} onClick={() => void setup()}>
               <Plus size={18} /> {busy ? 'Setting up…' : `Set up ${missingTopics === topics.length ? 'topics' : 'remaining topics'}`}
             </button>}
@@ -94,6 +100,10 @@ const PathwayView = () => {
               <ArrowRight size={18} /> {dueQuestions ? 'Open next due topic' : 'Continue practising'}
             </Link>}
           </div>
+          {today && <p className="pathway-note">{today.cards.length
+            ? `Your next session: ${today.dueCount} due reviews + ${today.newCount} new questions.${today.remainingDue ? ` ${today.remainingDue} more reviews remain after this session.` : ''}`
+            : 'No due reviews or new ready questions. You can still open a topic for extra practice.'}
+            {' '}Sessions contain up to 20 questions, including at most 5 new questions.</p>}
           {!data.concepts.length && <p className="pathway-note">Start by setting up the topics. Open Collections or another topic, add concepts, then link multiple-choice questions to practise.</p>}
           {Array.from(new Set(topics.map(topic => topic.section))).map(section =>
             <section key={section} className="pathway-section">

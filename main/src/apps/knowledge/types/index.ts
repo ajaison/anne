@@ -18,6 +18,7 @@ export type StudyMode = 'classic' | 'multiple_choice' | 'fill_blank' | 'type_ans
 export type ReviewRating = 'again' | 'hard' | 'good' | 'easy';
 
 export interface Card {
+  learning_order?: number | null;
   id: string;
   deck_id: string;
   concept_id?: string | null;
@@ -34,6 +35,7 @@ export interface Card {
 }
 
 export interface Concept {
+  learning_order?: number | null;
   id: string;
   deck_id: string;
   title: string;

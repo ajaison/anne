@@ -1,0 +1,624 @@
+{
+  "id": "java-control-flow-teaching-sequence-1",
+  "topic_key": "control-flow",
+  "namespace": "java-foundations-v1",
+  "concepts": [
+    {
+      "key": "branching",
+      "title": "If, else-if and else",
+      "learning_order": 1000,
+      "cards": [
+        {
+          "key": "if-condition-syntax",
+          "learning_order": 1010
+        },
+        {
+          "key": "if-false-following-statement",
+          "learning_order": 1020
+        },
+        {
+          "key": "if-else-two-paths",
+          "learning_order": 1030
+        },
+        {
+          "key": "else-if-selects-middle-band",
+          "learning_order": 1040
+        },
+        {
+          "key": "if-block-groups-work",
+          "learning_order": 1050
+        },
+        {
+          "key": "else-if-first-match",
+          "learning_order": 1060
+        },
+        {
+          "key": "independent-if-both-run",
+          "learning_order": 1070
+        },
+        {
+          "key": "braces-change-else-owner",
+          "learning_order": 1080
+        },
+        {
+          "key": "nonboolean-condition",
+          "learning_order": 1090
+        },
+        {
+          "key": "dangling-else",
+          "learning_order": 1100
+        },
+        {
+          "key": "else-if-skips-condition-effects",
+          "learning_order": 1110
+        },
+        {
+          "key": "null-guard-early-return",
+          "learning_order": 1120
+        },
+        {
+          "key": "guard-order-before-work",
+          "learning_order": 1130
+        },
+        {
+          "key": "nullable-boolean-safe-enable",
+          "learning_order": 1140
+        },
+        {
+          "key": "three-state-boolean-retains-unknown",
+          "learning_order": 1150
+        },
+        {
+          "key": "ordered-null-and-empty-guard",
+          "learning_order": 1160
+        },
+        {
+          "key": "permission-parentheses-change-policy",
+          "learning_order": 1170
+        },
+        {
+          "key": "boxed-condition",
+          "learning_order": 1180
+        },
+        {
+          "key": "pattern-and-binding-in-predicate",
+          "learning_order": 1190
+        }
+      ],
+      "original_title": "Boolean conditions and branch binding",
+      "original_objective": "Require boolean conditions, detect unboxing in branches and understand which if owns an else."
+    },
+    {
+      "key": "for-boundaries",
+      "title": "For and enhanced-for loops",
+      "learning_order": 2000,
+      "cards": [
+        {
+          "key": "for-header-three-parts",
+          "learning_order": 2010
+        },
+        {
+          "key": "for-counter-used-in-body",
+          "learning_order": 2020
+        },
+        {
+          "key": "for-repeat-fixed-action",
+          "learning_order": 2030
+        },
+        {
+          "key": "enhanced-for-read-sequence",
+          "learning_order": 2040
+        },
+        {
+          "key": "exclusive-bound",
+          "learning_order": 2050
+        },
+        {
+          "key": "inclusive-bound",
+          "learning_order": 2060
+        },
+        {
+          "key": "reverse-array-full-range",
+          "learning_order": 2070
+        },
+        {
+          "key": "stride-odd-length",
+          "learning_order": 2080
+        },
+        {
+          "key": "paired-index-meeting-stop",
+          "learning_order": 2090
+        },
+        {
+          "key": "dependent-for-updates-left-to-right",
+          "learning_order": 2100
+        },
+        {
+          "key": "omitted-for-condition-break",
+          "learning_order": 2110
+        },
+        {
+          "key": "empty-body",
+          "learning_order": 2120
+        },
+        {
+          "key": "empty-input-inclusive-bound",
+          "learning_order": 2130
+        },
+        {
+          "key": "enhanced-primitive-copy-not-array-write",
+          "learning_order": 2140
+        },
+        {
+          "key": "enhanced-object-mutation-visible",
+          "learning_order": 2150
+        },
+        {
+          "key": "enhanced-reference-reassignment-not-slot-write",
+          "learning_order": 2160
+        },
+        {
+          "key": "enhanced-array-expression-once",
+          "learning_order": 2170
+        },
+        {
+          "key": "enhanced-loop-hidden-unboxing",
+          "learning_order": 2180
+        }
+      ],
+      "original_title": "For-loop boundaries and empty bodies",
+      "original_objective": "Count iterations accurately and distinguish a loop body from a trailing empty statement."
+    },
+    {
+      "key": "while-do",
+      "title": "While and do-while loops",
+      "learning_order": 3000,
+      "cards": [
+        {
+          "key": "while-basic-progress",
+          "learning_order": 3010
+        },
+        {
+          "key": "while-condition-rechecked",
+          "learning_order": 3020
+        },
+        {
+          "key": "do-while-basic-syntax",
+          "learning_order": 3030
+        },
+        {
+          "key": "choose-loop-test-position",
+          "learning_order": 3040
+        },
+        {
+          "key": "while-zero",
+          "learning_order": 3050
+        },
+        {
+          "key": "do-once",
+          "learning_order": 3060
+        },
+        {
+          "key": "runtime-false-loop-reachable-source",
+          "learning_order": 3070
+        },
+        {
+          "key": "do-continue-runs-condition",
+          "learning_order": 3080
+        },
+        {
+          "key": "continue-skips-required-progress",
+          "learning_order": 3090
+        },
+        {
+          "key": "sentinel-and-bound-check",
+          "learning_order": 3100
+        },
+        {
+          "key": "bounded-retry-short-circuit",
+          "learning_order": 3110
+        },
+        {
+          "key": "failed-test-side-effect",
+          "learning_order": 3120
+        },
+        {
+          "key": "do-body-establishes-local-assignment",
+          "learning_order": 3130
+        }
+      ],
+      "original_title": "While and do-while evaluation",
+      "original_objective": "Distinguish pre-tested/post-tested loops and include side effects from the final failed test."
+    },
+    {
+      "key": "break-continue",
+      "title": "Break and continue",
+      "learning_order": 4000,
+      "cards": [
+        {
+          "key": "break-exits-before-tail",
+          "learning_order": 4010
+        },
+        {
+          "key": "continue-skips-body-tail",
+          "learning_order": 4020
+        },
+        {
+          "key": "break-versus-continue-decision",
+          "learning_order": 4030
+        },
+        {
+          "key": "break-sum",
+          "learning_order": 4040
+        },
+        {
+          "key": "continue-sum",
+          "learning_order": 4050
+        },
+        {
+          "key": "continue-update",
+          "learning_order": 4060
+        },
+        {
+          "key": "break-skips-for-update",
+          "learning_order": 4070
+        },
+        {
+          "key": "do-break-skips-condition",
+          "learning_order": 4080
+        },
+        {
+          "key": "switch-break-keeps-loop-running",
+          "learning_order": 4090
+        },
+        {
+          "key": "switch-continue-targets-loop",
+          "learning_order": 4100
+        },
+        {
+          "key": "break-without-enclosing-target",
+          "learning_order": 4110
+        },
+        {
+          "key": "outer-while-continue-skips-inner-for-update",
+          "learning_order": 4120
+        }
+      ],
+      "original_title": "Break, continue and for-loop updates",
+      "original_objective": "Distinguish exiting a loop from skipping its current body and understand for updates after continue."
+    },
+    {
+      "key": "nested-labels",
+      "title": "Nested loops and labels",
+      "learning_order": 5000,
+      "cards": [
+        {
+          "key": "nested-loop-ordinary-visits",
+          "learning_order": 5010
+        },
+        {
+          "key": "label-names-statement",
+          "learning_order": 5020
+        },
+        {
+          "key": "break-inner",
+          "learning_order": 5030
+        },
+        {
+          "key": "break-outer",
+          "learning_order": 5040
+        },
+        {
+          "key": "continue-outer",
+          "learning_order": 5050
+        },
+        {
+          "key": "break-labeled-block",
+          "learning_order": 5060
+        },
+        {
+          "key": "inner-label-continue-update",
+          "learning_order": 5070
+        },
+        {
+          "key": "continue-block-label-invalid",
+          "learning_order": 5080
+        },
+        {
+          "key": "label-out-of-scope",
+          "learning_order": 5090
+        },
+        {
+          "key": "duplicate-enclosing-label-invalid",
+          "learning_order": 5100
+        }
+      ],
+      "original_title": "Nested loops and labeled transfers",
+      "original_objective": "Identify the loop targeted by unlabeled/labeled break and continue without skipping or inventing iterations."
+    },
+    {
+      "key": "switch-classic",
+      "title": "Switch statements and case labels",
+      "learning_order": 6000,
+      "cards": [
+        {
+          "key": "switch-matching-case-basic",
+          "learning_order": 6010
+        },
+        {
+          "key": "switch-default-basic",
+          "learning_order": 6020
+        },
+        {
+          "key": "switch-break-exits-only-switch",
+          "learning_order": 6030
+        },
+        {
+          "key": "switch-arrow-statement-basic",
+          "learning_order": 6040
+        },
+        {
+          "key": "string-case-content-matching",
+          "learning_order": 6050
+        },
+        {
+          "key": "shared-case-group",
+          "learning_order": 6060
+        },
+        {
+          "key": "switch-no-match",
+          "learning_order": 6070
+        },
+        {
+          "key": "switch-fallthrough",
+          "learning_order": 6080
+        },
+        {
+          "key": "default-middle-falls-forward",
+          "learning_order": 6090
+        },
+        {
+          "key": "matched-later-case-skips-default",
+          "learning_order": 6100
+        },
+        {
+          "key": "selector-once-no-rematch",
+          "learning_order": 6110
+        },
+        {
+          "key": "boxed-byte-selector-unboxing",
+          "learning_order": 6120
+        },
+        {
+          "key": "switch-null",
+          "learning_order": 6130
+        },
+        {
+          "key": "nonconstant-case-label",
+          "learning_order": 6140
+        },
+        {
+          "key": "duplicate-folded-case-label",
+          "learning_order": 6150
+        },
+        {
+          "key": "case-constant-outside-byte-range",
+          "learning_order": 6160
+        },
+        {
+          "key": "fallthrough-local-not-assigned-on-direct-entry",
+          "learning_order": 6170
+        }
+      ],
+      "original_title": "Colon switch groups and fall-through",
+      "original_objective": "Trace colon-style case groups, missing matches and null selectors."
+    },
+    {
+      "key": "switch-expression",
+      "title": "Switch expressions and yield",
+      "learning_order": 7000,
+      "cards": [
+        {
+          "key": "switch-expression-result-assignment",
+          "learning_order": 7010
+        },
+        {
+          "key": "yield-block-result-basic",
+          "learning_order": 7020
+        },
+        {
+          "key": "switch-expression-default-covers-rest",
+          "learning_order": 7030
+        },
+        {
+          "key": "arrow-no-fallthrough",
+          "learning_order": 7040
+        },
+        {
+          "key": "grouped-arrow-labels",
+          "learning_order": 7050
+        },
+        {
+          "key": "block-yield",
+          "learning_order": 7060
+        },
+        {
+          "key": "exhaustive-expression",
+          "learning_order": 7070
+        },
+        {
+          "key": "enum-exhaustive-without-default",
+          "learning_order": 7080
+        },
+        {
+          "key": "selected-throw-arm",
+          "learning_order": 7090
+        },
+        {
+          "key": "block-missing-yield",
+          "learning_order": 7100
+        },
+        {
+          "key": "arrow-statement-nonexhaustive",
+          "learning_order": 7110
+        },
+        {
+          "key": "statement-arrow-not-arbitrary-value",
+          "learning_order": 7120
+        },
+        {
+          "key": "explicit-null-switch-case",
+          "learning_order": 7130
+        },
+        {
+          "key": "yield-exits-enclosing-expression",
+          "learning_order": 7140
+        },
+        {
+          "key": "return-cannot-exit-switch-expression",
+          "learning_order": 7150
+        },
+        {
+          "key": "standalone-switch-numeric-common-type",
+          "learning_order": 7160
+        },
+        {
+          "key": "object-target-switch-boxes-selected-type",
+          "learning_order": 7170
+        }
+      ],
+      "original_title": "Arrow switch rules, yield and exhaustiveness",
+      "original_objective": "Predict non-falling-through arrow rules and return values from exhaustive switch expressions."
+    },
+    {
+      "key": "reference-patterns",
+      "title": "Reference patterns and guards",
+      "learning_order": 8000,
+      "cards": [
+        {
+          "key": "instanceof-binding-basic",
+          "learning_order": 8010
+        },
+        {
+          "key": "type-pattern-binds-value",
+          "learning_order": 8020
+        },
+        {
+          "key": "when-guard-basic",
+          "learning_order": 8030
+        },
+        {
+          "key": "failed-guard-next-same-type",
+          "learning_order": 8040
+        },
+        {
+          "key": "guard-skipped-on-type-mismatch",
+          "learning_order": 8050
+        },
+        {
+          "key": "combined-null-default-label",
+          "learning_order": 8060
+        },
+        {
+          "key": "pattern-name-outside-rule",
+          "learning_order": 8070
+        },
+        {
+          "key": "nullable-guard-unboxes",
+          "learning_order": 8080
+        },
+        {
+          "key": "wider-pattern-dominates-narrower",
+          "learning_order": 8090
+        },
+        {
+          "key": "type-pattern-dominates-string-constant",
+          "learning_order": 8100
+        },
+        {
+          "key": "constant-true-guard-dominance",
+          "learning_order": 8110
+        },
+        {
+          "key": "unconditional-pattern-plus-default",
+          "learning_order": 8120
+        },
+        {
+          "key": "object-pattern-does-not-handle-null",
+          "learning_order": 8130
+        },
+        {
+          "key": "constant-false-guard-invalid",
+          "learning_order": 8140
+        }
+      ],
+      "original_title": "Reference patterns, guards and dominance",
+      "original_objective": "Match reference types with final pattern syntax, apply guards, reason about dominance/null handling and respect pattern-variable scope."
+    },
+    {
+      "key": "scope-reachability",
+      "title": "Scope and reachable paths",
+      "learning_order": 9000,
+      "cards": [
+        {
+          "key": "block-local-visible-inside",
+          "learning_order": 9010
+        },
+        {
+          "key": "outer-local-updated-in-branch",
+          "learning_order": 9020
+        },
+        {
+          "key": "return-ends-method-body",
+          "learning_order": 9030
+        },
+        {
+          "key": "for-scope",
+          "learning_order": 9040
+        },
+        {
+          "key": "case-blocks-separate-local-names",
+          "learning_order": 9050
+        },
+        {
+          "key": "colon-case-shared-local-scope",
+          "learning_order": 9060
+        },
+        {
+          "key": "statement-after-unconditional-return",
+          "learning_order": 9070
+        },
+        {
+          "key": "if-false-reachable",
+          "learning_order": 9080
+        },
+        {
+          "key": "while-false-unreachable",
+          "learning_order": 9090
+        },
+        {
+          "key": "infinite-while-no-exit-reachability",
+          "learning_order": 9100
+        },
+        {
+          "key": "loop-break-definite-assignment",
+          "learning_order": 9110
+        },
+        {
+          "key": "negated-pattern-return-enables-following-scope",
+          "learning_order": 9120
+        },
+        {
+          "key": "or-does-not-prove-pattern-match",
+          "learning_order": 9130
+        },
+        {
+          "key": "break-cannot-cross-switch-expression",
+          "learning_order": 9140
+        }
+      ],
+      "original_title": "Scope and statement reachability",
+      "original_objective": "Respect for-variable scope and distinguish Java reachability rules for while and if."
+    }
+  ]
+}

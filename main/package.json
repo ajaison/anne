@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "test:daily-study": "node --experimental-strip-types --test tests/daily-study.test.mjs tests/pathways.test.mjs tests/reviews.test.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "test:knowledge": "node --experimental-strip-types --test tests/study-content.test.mjs tests/reviews.test.mjs tests/multiple-choice.test.mjs tests/concepts.test.mjs tests/pathways.test.mjs tests/java-foundations.test.mjs tests/java-types-depth.test.mjs tests/java-types-depth-2.test.mjs tests/java-control-flow-depth.test.mjs tests/java-control-flow-depth-2.test.mjs",
+    "test:knowledge": "node --experimental-strip-types --test tests/study-content.test.mjs tests/reviews.test.mjs tests/multiple-choice.test.mjs tests/concepts.test.mjs tests/pathways.test.mjs tests/java-foundations.test.mjs tests/java-types-depth.test.mjs tests/java-types-depth-2.test.mjs tests/java-control-flow-depth.test.mjs tests/java-control-flow-depth-2.test.mjs tests/java-control-flow-progression.test.mjs tests/learning-order.test.mjs tests/daily-study.test.mjs",
     "seed:java:foundations": "node scripts/build-java-foundations-seed.mjs",
     "verify:java:foundations": "node scripts/verify-java-foundations.mjs",
     "preview": "vite preview",
@@ -20,7 +21,10 @@
     "test:java:control-flow": "node --experimental-strip-types --test tests/java-control-flow-depth.test.mjs",
     "seed:java:control-flow-2": "node scripts/build-java-control-flow-seed.mjs --pack=cards/pathways/java_control_flow_depth_2.json --output=supabase/seeds/java_control_flow_depth_2.sql",
     "verify:java:control-flow-2": "node scripts/verify-java-foundations.mjs --pack=cards/pathways/java_control_flow_depth_2.json",
-    "test:java:control-flow-2": "node --experimental-strip-types --test tests/java-control-flow-depth-2.test.mjs"
+    "test:java:control-flow-2": "node --experimental-strip-types --test tests/java-control-flow-depth-2.test.mjs",
+    "seed:java:control-flow-progression": "node scripts/build-java-control-flow-seed.mjs --pack=cards/pathways/java_control_flow_progression_1.json --output=supabase/seeds/java_control_flow_progression_1.sql",
+    "verify:java:control-flow-progression": "node scripts/verify-java-foundations.mjs --pack=cards/pathways/java_control_flow_progression_1.json",
+    "test:java:control-flow-progression": "node --experimental-strip-types --test tests/java-control-flow-progression.test.mjs tests/learning-order.test.mjs tests/daily-study.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",

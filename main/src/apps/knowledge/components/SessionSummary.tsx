@@ -8,9 +8,12 @@ interface SessionSummaryProps {
   deckName: string;
   onStudyAgain: () => void;
   onBackToDeck: () => void;
+  backLabel?: string;
+  againLabel?: string;
 }
 
-const SessionSummary: React.FC<SessionSummaryProps> = ({ result, deckName, onStudyAgain, onBackToDeck }) => {
+const SessionSummary: React.FC<SessionSummaryProps> = ({ result, deckName, onStudyAgain, onBackToDeck,
+  backLabel = 'Back to Deck', againLabel = 'Study Again' }) => {
   const accuracy = result.totalCards > 0
     ? Math.round((result.correctFirst / result.totalCards) * 100)
     : 0;
@@ -134,10 +137,10 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ result, deckName, onStu
         {/* Actions */}
         <motion.div className="summary-actions" variants={itemVariants}>
           <button className="summary-btn summary-btn--secondary" onClick={onBackToDeck}>
-            <Home size={18} /> Back to Deck
+            <Home size={18} /> {backLabel}
           </button>
           <button className="summary-btn summary-btn--primary" onClick={onStudyAgain}>
-            <RotateCcw size={18} /> Study Again
+            <RotateCcw size={18} /> {againLabel}
           </button>
         </motion.div>
       </motion.div>

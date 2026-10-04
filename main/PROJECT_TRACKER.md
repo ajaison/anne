@@ -23,6 +23,11 @@ Concept scheduling and mastery remain proposed; see updates 4 and 5 below.
 
 ### Content-first priority — user update 2026-10-04
 
+The user subsequently authorized a separate product update, **Study today**,
+while Java content authoring continues in another session. Keep those streams
+separate: content sessions follow the authoring ledger; this product update
+does not change curriculum packs or their import state.
+
 The user considers the app usable enough to begin learning and wants to fill
 the Java pathway deeply before further UX work. Work through topics in order,
 expanding concepts and practical multiple-choice questions in importable batches,
@@ -648,6 +653,7 @@ main/
 
 ### In Progress
 *   Java content expansion is the current priority; use `JAVA_CURRICULUM_AUTHORING.md` to continue topic-by-topic. Concept scheduling/mastery and further UX changes are deferred while the user learns and provides feedback.
+*   Study today implemented; awaiting user desktop/mobile acceptance. See the product update entry at the end of this tracker.
 
 ### Done
 *   [x] Update 4: general concepts, optional links, durable review evidence and topic practice; SQL applied by user and accepted.
@@ -760,3 +766,111 @@ SQL is unavailable, so its divergence from the current file is unconfirmed.
 Recommended replacing the entire SQL Editor contents with the current seed,
 including ROLLBACK first if the failed transaction remains open. Import success
 and practice acceptance remain pending; no Supabase connection was made.
+
+### Product update: Study today — 2026-10-04
+
+Status: implemented locally, awaiting desktop/mobile user testing. Authorized
+separately while curriculum authoring continues in another session.
+
+- Pathway pages now offer Study today with a preview of selected due/new counts.
+  A new project/pathway study route reuses StudySession for multiple topic decks.
+- Select complete multiple-choice cards linked to a concept in a matched topic
+  of this project. Due reviews come first, oldest first, followed by at most
+  five new questions from the earliest topics. Sessions are capped at twenty.
+  Limits are per session, not a persisted calendar-day allowance.
+- Use review history to keep Again cards (zero repetitions) out of the new
+  category. Existing pre-concept history without a concept snapshot remains
+  unavailable to this concept-scoped history lookup.
+- Exclude future reviews and unprepared/unlinked questions. When caught up,
+  show an empty-state explanation; no automatic cram fallback. Topic practice
+  remains available for extra practice.
+- Show the current topic during mixed sessions and return to the pathway from
+  Stop/summary/empty/error screens. Next session reloads current schedules.
+- Keep each deck's existing review saver and pending-save storage. Restore
+  unfinished reviews first and retry their original results. Restored reviews
+  occupy normal session slots; an exceptional backlog of over twenty pending
+  saves is retained in full so no unfinished save is dropped.
+- No SQL migration, content pack changes, live DB reads or concept-scheduling/
+  mastery changes. Study today requires an online connection to load.
+
+Validation: five new queue tests (cross-topic order, limits/backlog, Again,
+project/concept/MC scoping, no cram fallback), all 47 existing Knowledge tests,
+and production build passed. Changed components/services pass targeted ESLint.
+Build retains the existing large-bundle and stale Browserslist warnings.
+Run `npm run test:daily-study` for the 20 focused queue/pathway/review checks.
+Browser/live Supabase behavior is awaiting user verification.
+
+Manual acceptance:
+
+1. Open Java's pathway and check the Study today preview. With only new cards,
+   expect at most five questions; with due reviews, expect those first.
+2. Start the session and answer questions. Check topic labels and save/Next
+   behavior, including a transition between decks when available.
+3. Use Prev: saved questions remain read-only without duplicate XP/history.
+4. Finish or Stop and confirm return to the pathway. Next session should
+   exclude questions whose saved schedule is now in the future.
+5. With no eligible questions, expect the caught-up message. Extra topic
+   practice still works. Repeat the flow at phone width.
+6. If a save fails, retry its original result; reloading in the same tab should
+   restore it. Check this across a topic boundary if possible.
+
+### Teaching progression update — Control flow, 2026-10-04
+
+User requested recognizable subtopic bundles that teach syntax/ordinary cases
+before combined scenarios and edge cases, without visible difficulty labels.
+They report having added many questions/concepts; exact import counts remain
+uninspected. Advanced coverage alone had not supplied a complete novice route.
+
+- Added mandatory teaching-progression/task-variety rules to
+  JAVA_CURRICULUM_AUTHORING.md and updated KNOWLEDGE_DESIGN.md. Future bundles
+  begin with valid syntax, purpose and worked ordinary examples, then build
+  contrasts, practical application, repair and restrictions. MC remains the
+  authored mode, with several task forms; independent coding is not inferred.
+- java_control_flow_progression_1.json adds 30 distinct introductory cards to
+  all nine retained concepts. java_control_flow_sequence.json explicitly orders
+  all 134 cards; java_control_flow_curriculum.json is the consolidated teaching
+  view. Existing packs, cards and SQL artifacts remain unchanged. Coverage
+  ledger records novice gaps, cumulative counts and missing useful task forms.
+- java_control_flow_progression_1.sql is repeatable and adds nullable
+  learning_order columns to cards/concepts. Applies positions only where null
+  and renames default concept titles only when original title/objective match.
+  Custom edits/positions survive. Cards moved to other concepts are not relinked
+  for ordering. Stable IDs, existing question/answer edits, links, schedules and
+  review history are untouched. No destructive migration or policy changes.
+  This authorized ordering update deliberately extends earlier insert-only SQL
+  with metadata-only updates; new content still uses ON CONFLICT DO NOTHING.
+- App reads teaching order in concept/card listings, new topic-practice cards
+  and Study today new-card selection. Due reviews/pending saves retain priority;
+  five-new and twenty-total daily session limits unchanged. Unsequenced decks
+  retain their earlier practice behavior. Downloaded decks need refreshing.
+- With all earlier packs imported: zero new concepts, thirty questions added;
+  Control flow 9/134, Foundations 18/230. Rerun adds zero questions and keeps
+  existing positions. SQL summary adds ordered_questions for acceptance checks.
+- Import instructions: supabase/seeds/JAVA_CONTROL_FLOW_PROGRESSION.md.
+  No user import/practice acceptance of this update yet. App is locally built,
+  not deployed or browser-tested against a live database.
+
+Next curriculum work: follow teaching order on future topics and audit Types
+for introductory gaps too. Control flow still needs further completion/repair/
+requirement-choice variants and remaining advanced rule gaps. Keep first
+exposure structured and due reviews spaced; later mixed assessment and small
+independent Java programs are needed to judge transfer. Counts do not prove
+mastery. Wait for import/order/practice feedback before further authoring.
+
+Validation result: 30/30 new snippets passed JDK 25.0.2 --release 21, without
+previews. All 57 Knowledge tests passed, including the 10 focused progression/
+queue/content checks; the strengthened consolidated-view check also passed in
+the final focused rerun. Production build and targeted ESLint passed. Build
+retains existing large-bundle/stale Browserslist warnings. Java 27 execution,
+SQL execution against PostgreSQL/Supabase and browser/mobile behavior remain
+unverified. No live database connection or credentials were used.
+
+### Curriculum prompt wording — 2026-10-04
+
+User requested removing routine Java-version boilerplate from future questions.
+Updated JAVA_CURRICULUM_AUTHORING.md, including its handoff prompt: keep Java 27/
+preview policy in metadata/docs; include version, imports or execution context
+in learner prompts only when they affect the answer. Also omit standard-main/
+no-arguments setup when irrelevant, retaining useful introductory teaching text.
+This is a documentation-only rule change. Existing packs, SQL and imported
+questions were not rewritten; no tests or live database access were needed.

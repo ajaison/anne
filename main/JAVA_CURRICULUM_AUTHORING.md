@@ -11,6 +11,11 @@ Prioritize filling the Java project deeply, one topic and importable batch at a
 time. Defer new UX/mastery features unless a defect blocks content use.
 
 Target **Java 27**, excluding preview/incubator features unless requested.
+Keep the Java target and preview policy in pack metadata and authoring/import
+documentation. Do not prepend “Java 27 without preview features” to ordinary
+learner-facing questions. Mention a version or feature status in a question
+only when it changes the answer or the question explicitly compares versions.
+
 Use multiple choice throughout: one correct answer and three convincing,
 comparable alternatives. Do not introduce typed short-answer cards. Code
 prediction, debugging, design decisions and practical scenarios can all be MC.
@@ -45,13 +50,14 @@ The structured pathway seed pack is **not** flat Bulk Add JSON.
 ## Topic ledger
 
 Local authoring status only. Imported/live counts have not been inspected.
-The user applied and accepted the concept migration; content-seed execution has
-not been reported. Do not treat an authored SQL file as an applied batch.
+The user applied and accepted the concept migration and now reports adding many
+questions/concepts; exact per-batch import counts remain uninspected. A prior
+depth-2 JSON import failure was reported; subsequent success was not separately confirmed. Do not treat an authored SQL file as an applied batch.
 
 | Order | Topic key | Deck title | Local coverage status |
 | --- | --- | --- | --- |
 | 1 | types | Types, variables and operators | Depth batches 1/2 supplied: 9 concepts / 96 cumulative cards; incomplete; import/practice pending |
-| 2 | control-flow | Control flow | Active: depth batch 2 supplied, 9 concepts / 104 cumulative cards; incomplete; import/practice pending |
+| 2 | control-flow | Control flow | Active: depth batch 2 supplied, 9 concepts / 134 cumulative cards; progression update adds 30 introductory cards and explicit teaching order; incomplete; import/practice pending |
 | 3 | methods | Methods and scope | Not authored in this pathway seed workflow |
 | 4 | arrays | Arrays | Not authored in this workflow; legacy pack exists |
 | 5 | strings | Strings and text | Not authored in this workflow; legacy pack exists |
@@ -203,6 +209,86 @@ and the broader suite when shared changes or failures justify it. No routine
 production build/lint for content-only additions. SQL still needs static
 preservation/count checks, with execution limitations clearly disclosed.
 
+## Teaching progression — required for every future topic
+
+User direction, 2026-10-04: the curriculum must teach a beginner through its
+initial questions, then build toward application and deeper cases. Audit both
+coverage and the route into it. Advanced coverage cannot substitute for an
+introductory sequence. Do not display easy/medium/hard labels.
+
+1. Group questions into recognizable subtopic bundles, each with a clear
+   objective: e.g. If/else, For loops, While/do, Switch statements, Switch
+   expressions. Keep compiler rules and edge cases inside the relevant bundle
+   where they help apply that skill; use a separate cross-cutting scope bundle
+   only when the reasoning is genuinely shared. Preserve existing identities
+   and review snapshots; do not merge/relink reviewed concepts casually.
+2. Start each bundle with purpose, valid syntax and one ordinary behavior.
+   Provide a small worked example or a concise rule in an introductory prompt
+   where needed. Avoid assumed knowledge of a construct not introduced earlier.
+   Feedback must teach the rule, trace the example and explain misconceptions,
+   so an incorrect first attempt still helps the learner understand it.
+3. Build in this order: basic form → ordinary single-path example → contrasting
+   outcomes/branches → combined practical use → diagnose/repair → boundaries
+   and compiler/runtime restrictions → unfamiliar application. Introduce one
+   new idea at a time before combining several. Use prerequisite bundles first.
+   If/else example: condition/body syntax, false-body skip, if/else, else-if,
+   independent tests and braces, then guards/null/scope/complex predicates.
+4. Reuse suitable existing cards in the sequence; add only missing teaching
+   steps. A new introductory card must fill a distinct instructional gap,
+   not rename an already suitable simple scenario. Record its purpose and
+   dependencies in the ledger. Review cumulative content, not only the batch.
+5. Keep explicit internal learning_order metadata for concept and question
+   sequence; JSON insertion order, UUIDs and import dates are not teaching
+   order. Use the ordering-aware SQL workflow for new topics/packs. For Control
+   flow, maintain java_control_flow_sequence.json and the consolidated teaching
+   view java_control_flow_curriculum.json; assign new positions deliberately,
+   not by append date. Leave gaps between positions for future prerequisites.
+6. Vary MC tasks within each bundle: identify syntax/meaning, explain a rule,
+   predict ordinary behavior, complete/choose code, diagnose an error, select a
+   minimal repair, choose a design for stated requirements. Not every bundle
+   needs an arbitrary quota of each; track absent useful forms explicitly.
+   Aim for understanding and application rather than a deck of output puzzles.
+7. First exposure follows teaching order. Due reviews retain scheduler priority
+   and can mix earlier material; do not reset schedules to enforce progression.
+   A new foundation card is not a prerequisite mastery gate. Eventually add
+   unseen mixed-topic scenarios to test choosing the appropriate construct.
+   MC-only content cannot demonstrate independent coding fluency; recommend
+   writing/running small Java programs alongside study, without silently adding
+   typed grading, a compiler runner or new card modes.
+8. Validate prerequisites/order, duplicates, four usable choices and teaching
+   feedback as well as coverage. Report authored versus imported status and
+   explicitly distinguish baseline checks, Java 27 execution and live SQL.
+
+Learning rationale: the [IES practice guide](https://ies.ed.gov/ncee/wwc/practiceguide/1)
+recommends combining worked examples with problem solving, retrieval practice
+and spacing. Applying those principles to this Java MC curriculum is a design
+choice, not evidence that completing the deck alone establishes mastery.
+
+## Learner-facing wording — required for future questions
+
+Start with the teaching point, scenario or question. Omit routine authoring and
+execution boilerplate such as “Java 27 without preview features” and “The code
+runs inside standard main(String[] args), with no command-line arguments” when
+those details have no bearing on the answer. Do not replace them with another
+repeated disclaimer. Keep useful introductory rules and worked examples.
+
+State only context needed to make the answer unambiguous: e.g. no arguments
+when args.length affects output, an enclosing loop/method when a transfer or
+compilation rule depends on it, or an import needed to resolve an API. Keep full
+execution wrappers/flags in verification metadata and delivery notes. Keep
+sources in feedback rather than cluttering the prompt.
+
+Example:
+“An if statement tests a boolean condition before its body. Which part of this
+statement is the condition?” followed by the code is sufficient for the cited
+introductory card. Its Java target and verification context remain recorded
+outside the learner-facing question.
+
+During review, remove repeated setup text that neither teaches a concept nor
+changes interpretation. This is an authoring rule; updating it does not alter
+already imported questions. Any later prompt cleanup must preserve stable IDs,
+user edits, schedules and review history through a separately scoped update.
+
 ## Depth and question quality
 
 1. Inventory the topic before authoring: atomic concepts, prerequisites,
@@ -218,7 +304,8 @@ preservation/count checks, with execution limitations clearly disclosed.
    complexity warrants it. Keep remaining gaps explicit. A topic is ready only
    when its inventory is covered and all authored items have been reviewed.
 5. Each card has exactly one defensible answer. State version, imports, enclosing
-   context and assumptions when they affect the result. Avoid unspecified
+   context and assumptions only when they affect the result; follow the
+   learner-facing wording rule above. Avoid unspecified
    iteration order, scheduling, GC timing or implementation-dependent outcomes
    unless that uncertainty itself is the correct answer.
 6. Distractors represent specific plausible misconceptions. Match the correct
@@ -330,7 +417,9 @@ Continue the next unfinished Java topic/batch from the ledger. If no deeper
 batch has been started, begin by expanding Topic 1: Types, variables and
 operators, rather than treating its 24 starter questions as complete.
 
-Target Java 27 without preview features. Build deep, expert-oriented concept
+Target Java 27 without preview features; record this in metadata, not as a
+repeated learner-facing preamble. Include only answer-relevant execution context
+in prompts. Build deep, expert-oriented concept
 coverage using only multiple-choice questions with three convincing distractors,
 clear explanations of every option, practical scenarios and precise official
 sources. Preserve existing IDs, content edits, review history and schedules.
@@ -373,3 +462,39 @@ Official Java 27 JLS reviewed; Java 27 execution and PostgreSQL/Supabase executi
 remain unverified. User import/practice feedback pending; no live connection.
 Next: residual Control flow audit/batch, then Methods and scope. No topic is
 complete and 200 cards do not establish mastery or exam readiness.
+
+### Control flow teaching progression — supplied 2026-10-04
+
+User requested subtopic bundles with introductory questions building gradually
+into deeper coverage. Added `java_control_flow_progression_1.json`: 30 distinct
+introductory MC cards across the nine existing concepts. Existing 104 cards are
+retained, including harder material, and sequenced explicitly in
+`java_control_flow_sequence.json`; `java_control_flow_curriculum.json` is the
+consolidated 134-card teaching view, not a replacement bulk-import payload.
+
+Runnable SQL: `supabase/seeds/java_control_flow_progression_1.sql`. Adds nullable
+learning_order columns to cards/concepts and orders known in-place records;
+this is a deliberate metadata-only exception to the earlier insert-only batch
+contract. No existing card content/IDs/links/schedules/history are updated.
+Standard concept titles change only when both title/objective match untouched
+authored values. Custom labels/objectives/positions survive. Existing batches
+remain unchanged. Reapply ordering to previously missing packs by rerunning
+this SQL after their import; pre-existing positions are not overwritten.
+
+App loaders order concept listings/questions, topic practice orders zero-
+repetition questions, and Study today orders new cards by pathway then teaching
+position. Due reviews and pending saves retain priority. No difficulty labels,
+mastery gates, grading changes or resets. Null-position decks retain earlier
+practice behavior. Existing local downloads need refreshing after import.
+
+Counts with all earlier packs: Control flow 9/134; Foundations 18/230. No new
+concepts with earlier Control flow packs present. Import/practice confirmation
+pending. Instructions: `supabase/seeds/JAVA_CONTROL_FLOW_PROGRESSION.md`.
+
+Validation result: 30/30 new snippets passed JDK 25.0.2 --release 21, without
+previews. All 57 Knowledge tests passed, including the 10 focused progression/
+queue/content checks; the strengthened consolidated-view check also passed in
+the final focused rerun. Production build and targeted ESLint passed. Build
+retains existing large-bundle/stale Browserslist warnings. Java 27 execution,
+SQL execution against PostgreSQL/Supabase and browser/mobile behavior remain
+unverified. No live database connection or credentials were used.

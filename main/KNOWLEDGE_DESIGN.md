@@ -289,3 +289,15 @@ retroactively treat rating-only historical rows as strong mastery evidence.
 The first deliverable is a trustworthy small topic: select topic -> learn a
 concept -> attempt a varied exercise -> save evidence -> return when due ->
 see honest mastery progress. A complete curriculum comes after that flow works.
+
+## User-directed teaching progression — 2026-10-04
+
+Implemented locally: nullable learning_order metadata is consumed by concept
+loaders, new topic-practice questions and new Study today questions. Control
+flow SQL adds positions/default-label changes and thirty introductory cards.
+No live import or browser verification is claimed. Due reviews/pending saves
+retain priority; schedules and history are untouched. This is teaching order,
+not mastery gating. MC remains the authorized authored card mode, with varied
+task forms; independent coding evidence remains outside the current workflow.
+Future authoring must start with syntax and ordinary worked examples and then
+build practical reasoning and restrictions. See JAVA_CURRICULUM_AUTHORING.md.

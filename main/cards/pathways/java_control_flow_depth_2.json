@@ -1,0 +1,962 @@
+{
+  "id": "java-control-flow-depth-batch-2",
+  "version": 1,
+  "java_release": 27,
+  "preview_features": false,
+  "topics": [
+    {
+      "key": "control-flow",
+      "title": "Control flow",
+      "aliases": [
+        "Loops and conditionals"
+      ],
+      "objective": "Reason about branches, loops, switch expressions and execution order.",
+      "concepts": [
+        {
+          "key": "branching",
+          "title": "Boolean conditions and branch binding",
+          "objective": "Require boolean conditions, detect unboxing in branches and understand which if owns an else.",
+          "cards": [
+            {
+              "key": "pattern-and-binding-in-predicate",
+              "question": "Java 27 without preview features. A pattern binding supplies a second condition. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"go\";\nif (payload instanceof String text && text.length() == 2) {\n  System.out.print(text.toUpperCase(java.util.Locale.ROOT));\n} else System.out.print(\"other\");\n```",
+              "correct_option": "Prints: GO",
+              "distractors": [
+                "Compilation fails: text cannot be used in the && operand.",
+                "Prints: other",
+                "Throws ClassCastException."
+              ],
+              "explanation": "A successful positive pattern match introduces text for the && right operand and the true if body. The payload is a two-character String, so GO prints using Locale.ROOT. The scope-error option ignores flow-sensitive binding, other ignores the true predicate, and safe type testing/binding does not cause a cast failure.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-6.html#jls-6.3.1.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Successful instanceof pattern binding is available to an AND predicate and true body.",
+              "verification": {
+                "code": "Object payload = \"go\";\nif (payload instanceof String text && text.length() == 2) {\n  System.out.print(text.toUpperCase(java.util.Locale.ROOT));\n} else System.out.print(\"other\");",
+                "kind": "output",
+                "expected": "GO"
+              }
+            },
+            {
+              "key": "permission-parentheses-change-policy",
+              "question": "Java 27 without preview features. Two permission predicates use different grouping. What is printed? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nboolean loggedIn = false;\nboolean owns = false;\nboolean admin = true;\nboolean first = loggedIn && owns || admin;\nboolean second = loggedIn && (owns || admin);\nSystem.out.print(first + \" \" + second);\n```",
+              "correct_option": "Prints: true false",
+              "distractors": [
+                "Prints: false false",
+                "Prints: true true",
+                "Compilation fails: && and || cannot appear in the same expression."
+              ],
+              "explanation": "&& binds more tightly than ||, so first groups as (loggedIn && owns) || admin and accepts the admin flag independently of login. second requires loggedIn before either ownership/admin can permit access. false/false overlooks the independent admin alternative; true/true ignores the explicit outer login requirement; mixed operators are legal. Choose parentheses to express the intended policy.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.24",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Permission predicates expose precedence versus explicitly grouped login requirement.",
+              "verification": {
+                "code": "boolean loggedIn = false;\nboolean owns = false;\nboolean admin = true;\nboolean first = loggedIn && owns || admin;\nboolean second = loggedIn && (owns || admin);\nSystem.out.print(first + \" \" + second);",
+                "kind": "output",
+                "expected": "true false"
+              }
+            },
+            {
+              "key": "three-state-boolean-retains-unknown",
+              "question": "Java 27 without preview features. A missing setting should remain distinguishable from false. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nBoolean approved = null;\nString status;\nif (approved == null) status = \"unset\";\nelse if (approved) status = \"yes\";\nelse status = \"no\";\nSystem.out.print(status);\n```",
+              "correct_option": "Prints: unset",
+              "distractors": [
+                "Prints: no",
+                "Prints: yes",
+                "Throws NullPointerException."
+              ],
+              "explanation": "The first reference-null check handles the missing value before the later unboxing condition can be reached. It preserves a separate unset outcome rather than mapping null to false. no and yes ignore the first branch, and NullPointerException would require evaluating approved as a condition, which this input does not do. Distinguish missing from disabled when the domain needs three states.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.9.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Explicit first null branch preserves a third state instead of conflating missing with false.",
+              "verification": {
+                "code": "Boolean approved = null;\nString status;\nif (approved == null) status = \"unset\";\nelse if (approved) status = \"yes\";\nelse status = \"no\";\nSystem.out.print(status);",
+                "kind": "output",
+                "expected": "unset"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "nonboolean-condition",
+            "dangling-else",
+            "boxed-condition",
+            "else-if-first-match",
+            "independent-if-both-run",
+            "else-if-skips-condition-effects",
+            "null-guard-early-return",
+            "nullable-boolean-safe-enable",
+            "ordered-null-and-empty-guard",
+            "braces-change-else-owner",
+            "guard-order-before-work"
+          ]
+        },
+        {
+          "key": "for-boundaries",
+          "title": "For-loop boundaries and empty bodies",
+          "objective": "Count iterations accurately and distinguish a loop body from a trailing empty statement.",
+          "cards": [
+            {
+              "key": "enhanced-primitive-copy-not-array-write",
+              "question": "Java 27 without preview features. An enhanced-for variable is incremented. Does the array change? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nint[] scores = {1, 2};\nfor (int score : scores) score += 10;\nSystem.out.print(scores[0] + \" \" + scores[1]);\n```",
+              "correct_option": "Prints: 1 2",
+              "distractors": [
+                "Prints: 11 12",
+                "Prints: 10 10",
+                "Compilation fails: enhanced-for variables cannot be assigned."
+              ],
+              "explanation": "Each iteration variable receives the current element value. Assigning or incrementing that primitive local does not write back to the array slot. The variable need not be final, so assignment is legal; 11/12 wrongly assumes write-through, and 10/10 additionally replaces rather than adds. Use indexed assignment to update primitive array elements.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.14.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Enhanced-for primitive iteration variable is a value copy, not a writable array element alias.",
+              "verification": {
+                "code": "int[] scores = {1, 2};\nfor (int score : scores) score += 10;\nSystem.out.print(scores[0] + \" \" + scores[1]);",
+                "kind": "output",
+                "expected": "1 2"
+              }
+            },
+            {
+              "key": "enhanced-object-mutation-visible",
+              "question": "Java 27 without preview features. The loop changes fields through reference-valued elements. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nclass Box { int value; Box(int v) { value = v; } }\nBox[] boxes = {new Box(1), new Box(2)};\nfor (Box box : boxes) box.value += 10;\nSystem.out.print(boxes[0].value + \" \" + boxes[1].value);\n```",
+              "correct_option": "Prints: 11 12",
+              "distractors": [
+                "Prints: 1 2",
+                "Prints: 10 10",
+                "Compilation fails: enhanced-for cannot mutate objects."
+              ],
+              "explanation": "The iteration variable copies each reference, so it still refers to the same object as the corresponding slot. Field mutations are therefore visible through the array. 1/2 confuses copying a reference with cloning its object, 10/10 ignores +=, and no language rule forbids object mutation merely because enhanced-for is used.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.14.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Reference-valued enhanced-for permits mutation of the referenced elements.",
+              "verification": {
+                "code": "class Box { int value; Box(int v) { value = v; } }\nBox[] boxes = {new Box(1), new Box(2)};\nfor (Box box : boxes) box.value += 10;\nSystem.out.print(boxes[0].value + \" \" + boxes[1].value);",
+                "kind": "output",
+                "expected": "11 12"
+              }
+            },
+            {
+              "key": "enhanced-reference-reassignment-not-slot-write",
+              "question": "Java 27 without preview features. The loop replaces its local reference. Are array slots replaced? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nclass Box { int value; Box(int v) { value = v; } }\nBox[] boxes = {new Box(1)};\nfor (Box box : boxes) box = new Box(9);\nSystem.out.print(boxes[0].value);\n```",
+              "correct_option": "Prints: 1",
+              "distractors": [
+                "Prints: 9",
+                "Prints: 0",
+                "Compilation fails: assigning the iteration reference is forbidden."
+              ],
+              "explanation": "Reassigning the iteration local changes that local reference, not the array slot that supplied it. The original element therefore stays at one. Nine assumes a write-back reference binding, zero invents a reset, and non-final iteration locals may be assigned. This deliberately contrasts with mutating a field on the referenced element.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.14.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Reassigning enhanced-for reference does not replace its source array slot.",
+              "verification": {
+                "code": "class Box { int value; Box(int v) { value = v; } }\nBox[] boxes = {new Box(1)};\nfor (Box box : boxes) box = new Box(9);\nSystem.out.print(boxes[0].value);",
+                "kind": "output",
+                "expected": "1"
+              }
+            },
+            {
+              "key": "enhanced-loop-hidden-unboxing",
+              "question": "Java 27 without preview features. An Integer array is traversed with an int iteration variable. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nInteger[] values = {1, null};\nint total = 0;\nfor (int value : values) total += value;\nSystem.out.print(total);\n```",
+              "correct_option": "Throws NullPointerException.",
+              "distractors": [
+                "Prints: 1",
+                "Prints: 0",
+                "Compilation fails: enhanced-for never permits unboxing."
+              ],
+              "explanation": "Each Integer element is converted to int for the iteration variable. The first value is added; the null element then fails unboxing before its body runs, so the final print is not reached. Null is not skipped or converted to zero, and this implicit unboxing conversion is legal at compile time. Use reference iteration plus an explicit null policy when needed.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.14.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Enhanced-for variable conversion can implicitly unbox a nullable element.",
+              "verification": {
+                "code": "Integer[] values = {1, null};\nint total = 0;\nfor (int value : values) total += value;\nSystem.out.print(total);",
+                "kind": "runtime_exception",
+                "expected": "NullPointerException"
+              }
+            },
+            {
+              "key": "enhanced-array-expression-once",
+              "question": "Java 27 without preview features. A method supplying the array has an observable call count. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nclass Source {\n  int calls;\n  int[] values() { calls++; return new int[]{2, 4}; }\n}\nSource source = new Source();\nint total = 0;\nfor (int value : source.values()) total += value;\nSystem.out.print(total + \" \" + source.calls);\n```",
+              "correct_option": "Prints: 6 1",
+              "distractors": [
+                "Prints: 6 2",
+                "Prints: 6 3",
+                "Prints: 2 1"
+              ],
+              "explanation": "For array iteration, the enhanced-for expression is evaluated once and its array is retained for traversal. Both elements contribute six and the provider is called once. Two calls would reevaluate for each element, three would add a terminating reevaluation, and two as the sum omits the second element. Expensive or stateful providers do not rerun merely because the body repeats.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.14.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Enhanced-for array expression is evaluated once rather than per iteration/test.",
+              "verification": {
+                "code": "class Source {\n  int calls;\n  int[] values() { calls++; return new int[]{2, 4}; }\n}\nSource source = new Source();\nint total = 0;\nfor (int value : source.values()) total += value;\nSystem.out.print(total + \" \" + source.calls);",
+                "kind": "output",
+                "expected": "6 1"
+              }
+            },
+            {
+              "key": "dependent-for-updates-left-to-right",
+              "question": "Java 27 without preview features. One update expression reads a variable changed by the preceding update. What is printed? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nString trace = \"\";\nfor (int i = 0, mirror = 0; i < 2; i++, mirror = i) {\n  trace += i + \":\" + mirror + \" \";\n}\nSystem.out.print(trace.trim());\n```",
+              "correct_option": "Prints: 0:0 1:1",
+              "distractors": [
+                "Prints: 0:0 1:0",
+                "Prints: 0:1 1:2",
+                "Compilation fails: update expressions cannot depend on each other."
+              ],
+              "explanation": "The for update expressions execute left to right. i++ runs before mirror=i, so the second body sees both as one. 1:0 reverses that update order, 0:1 assumes updates precede the first body, and dependencies between updates are legal. This matters when several loop-state variables are maintained in one header.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.14.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Dependent update expressions run left to right after the body.",
+              "verification": {
+                "code": "String trace = \"\";\nfor (int i = 0, mirror = 0; i < 2; i++, mirror = i) {\n  trace += i + \":\" + mirror + \" \";\n}\nSystem.out.print(trace.trim());",
+                "kind": "output",
+                "expected": "0:0 1:1"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "exclusive-bound",
+            "inclusive-bound",
+            "empty-body",
+            "reverse-array-full-range",
+            "paired-index-meeting-stop",
+            "stride-odd-length",
+            "empty-input-inclusive-bound",
+            "omitted-for-condition-break"
+          ]
+        },
+        {
+          "key": "while-do",
+          "title": "While and do-while evaluation",
+          "objective": "Distinguish pre-tested/post-tested loops and include side effects from the final failed test.",
+          "cards": [
+            {
+              "key": "continue-skips-required-progress",
+              "question": "Java 27 without preview features. A bounded diagnostic prevents a faulty loop from running forever. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nclass Budget { int calls; boolean take() { return ++calls <= 3; } }\nBudget budget = new Budget();\nint[] values = {0, 5};\nint index = 0;\nwhile (index < values.length && budget.take()) {\n  if (values[index] == 0) continue;\n  index++;\n}\nSystem.out.print(index + \" \" + budget.calls);\n```",
+              "correct_option": "Prints: 0 4",
+              "distractors": [
+                "Prints: 1 3",
+                "Prints: 2 2",
+                "Throws ArrayIndexOutOfBoundsException."
+              ],
+              "explanation": "continue skips index++, so every admitted body sees the same zero at index zero. The external budget eventually fails on its fourth test, yielding 0/4. Advancing past zero or traversing both values assumes progress that was skipped; index never becomes invalid. Move progress before the skip or make it unavoidable to prevent nontermination without the diagnostic budget.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.12.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "While continue can bypass essential progress; bounded diagnostic safely exposes the repeated state.",
+              "verification": {
+                "code": "class Budget { int calls; boolean take() { return ++calls <= 3; } }\nBudget budget = new Budget();\nint[] values = {0, 5};\nint index = 0;\nwhile (index < values.length && budget.take()) {\n  if (values[index] == 0) continue;\n  index++;\n}\nSystem.out.print(index + \" \" + budget.calls);",
+                "kind": "output",
+                "expected": "0 4"
+              }
+            },
+            {
+              "key": "runtime-false-loop-reachable-source",
+              "question": "Java 27 without preview features. The condition local currently holds false. Is the body a compile-time unreachable error? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nboolean run = false;\nwhile (run) { System.out.print(\"body\"); }\nSystem.out.print(\"done\");\n```",
+              "correct_option": "Prints: done",
+              "distractors": [
+                "Compilation fails: every false-valued loop condition makes its body unreachable.",
+                "Prints: bodydone",
+                "Runs forever without printing."
+              ],
+              "explanation": "run is an ordinary local, not a constant expression. The body is reachable under the language rules even though the actual first test is false, so the source compiles and skips it. The compiler-error option confuses this with while(false); bodydone ignores the runtime value; infinite execution invents a true condition.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.22",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Ordinary false-valued loop local differs from constant-false reachability rules.",
+              "verification": {
+                "code": "boolean run = false;\nwhile (run) { System.out.print(\"body\"); }\nSystem.out.print(\"done\");",
+                "kind": "output",
+                "expected": "done"
+              }
+            },
+            {
+              "key": "do-body-establishes-local-assignment",
+              "question": "Java 27 without preview features. A local is assigned in the guaranteed first do iteration. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nint limit;\ndo { limit = 7; } while (args.length > 0);\nSystem.out.print(limit);\n```",
+              "correct_option": "Prints: 7",
+              "distractors": [
+                "Compilation fails: assignments inside loops never establish definite assignment.",
+                "Prints: 0",
+                "Runs forever without printing."
+              ],
+              "explanation": "A do loop executes its body before testing the condition. The assignment therefore happens before any normal exit; with no arguments the first test ends the loop and seven prints. Loop assignments can establish definite assignment when every exiting path supplies it; zero invents a local default, and the shown condition is false on its first test.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-16.html#jls-16.2.11",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Guaranteed do-loop body can establish assignment before a later local read.",
+              "verification": {
+                "code": "int limit;\ndo { limit = 7; } while (args.length > 0);\nSystem.out.print(limit);",
+                "kind": "output",
+                "expected": "7"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "while-zero",
+            "do-once",
+            "failed-test-side-effect",
+            "do-continue-runs-condition",
+            "sentinel-and-bound-check",
+            "bounded-retry-short-circuit"
+          ]
+        },
+        {
+          "key": "break-continue",
+          "title": "Break, continue and for-loop updates",
+          "objective": "Distinguish exiting a loop from skipping its current body and understand for updates after continue.",
+          "cards": [
+            {
+              "key": "outer-while-continue-skips-inner-for-update",
+              "question": "Java 27 without preview features. A labeled continue leaves an inner for and retests the outer while. What is printed? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nint tests = 0;\nint innerUpdates = 0;\nouter: while (++tests <= 2) {\n  for (int col = 0; col < 2; col++, innerUpdates++) {\n    continue outer;\n  }\n}\nSystem.out.print(tests + \" \" + innerUpdates);\n```",
+              "correct_option": "Prints: 3 0",
+              "distractors": [
+                "Prints: 2 2",
+                "Prints: 3 2",
+                "Prints: 2 0"
+              ],
+              "explanation": "continue outer targets the while condition, bypassing the inner for updates entirely. Two admitted outer bodies each leave on their first inner visit; the final failed outer test makes tests three. Counts with updates incorrectly execute the inner loop continuation, and two tests omits the final false evaluation. The target loop determines where control resumes.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.16",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Outer while continue bypasses inner for update and includes the final outer test effect.",
+              "verification": {
+                "code": "int tests = 0;\nint innerUpdates = 0;\nouter: while (++tests <= 2) {\n  for (int col = 0; col < 2; col++, innerUpdates++) {\n    continue outer;\n  }\n}\nSystem.out.print(tests + \" \" + innerUpdates);",
+                "kind": "output",
+                "expected": "3 0"
+              }
+            },
+            {
+              "key": "break-without-enclosing-target",
+              "question": "Java 27 without preview features. A bare break appears in an if but no loop or switch. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nif (args.length == 0) break;\nSystem.out.print(\"done\");\n```",
+              "correct_option": "Compilation fails: an unlabeled break needs an enclosing loop or switch.",
+              "distractors": [
+                "Prints: done",
+                "Completes normally without printing.",
+                "Throws IllegalStateException."
+              ],
+              "explanation": "An if statement is not a target for an unlabeled break. The source is rejected because there is no enclosing loop or switch to exit. The condition being true does not turn break into return, ignore it or defer the problem to a runtime exception. Use an appropriate control structure or method return for an early exit.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.15",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Unlabeled break cannot target an if statement or the surrounding method.",
+              "verification": {
+                "code": "if (args.length == 0) break;\nSystem.out.print(\"done\");",
+                "kind": "compile_error",
+                "expected": "break outside switch or loop"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "continue-sum",
+            "break-sum",
+            "continue-update",
+            "switch-break-keeps-loop-running",
+            "switch-continue-targets-loop",
+            "break-skips-for-update",
+            "do-break-skips-condition"
+          ]
+        },
+        {
+          "key": "nested-labels",
+          "title": "Nested loops and labeled transfers",
+          "objective": "Identify the loop targeted by unlabeled/labeled break and continue without skipping or inventing iterations.",
+          "cards": [
+            {
+              "key": "duplicate-enclosing-label-invalid",
+              "question": "Java 27 without preview features. Two enclosing labeled statements use the same label. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nouter: while (args.length == 0) {\n  outer: for (int i = 0; i < 1; i++) { break outer; }\n  break;\n}\n```",
+              "correct_option": "Compilation fails: the nested label outer conflicts with an enclosing label.",
+              "distractors": [
+                "Completes normally without printing.",
+                "Runs forever without printing.",
+                "Throws IllegalStateException because the break target is ambiguous."
+              ],
+              "explanation": "A label cannot redeclare the name of an enclosing labeled statement. The compiler prevents the conflict instead of resolving it to the nearest label at runtime. There is no normal execution, infinite run or dynamic ambiguous-target exception. Different names make intended transfer targets explicit; label namespaces still have enclosing-scope restrictions.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.7",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "An enclosing label name cannot be reused on a nested labeled statement.",
+              "verification": {
+                "code": "outer: while (args.length == 0) {\n  outer: for (int i = 0; i < 1; i++) { break outer; }\n  break;\n}",
+                "kind": "compile_error",
+                "expected": "already in use"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "break-outer",
+            "break-inner",
+            "continue-outer",
+            "break-labeled-block",
+            "continue-block-label-invalid",
+            "inner-label-continue-update",
+            "label-out-of-scope"
+          ]
+        },
+        {
+          "key": "switch-classic",
+          "title": "Colon switch groups and fall-through",
+          "objective": "Trace colon-style case groups, missing matches and null selectors.",
+          "cards": [
+            {
+              "key": "matched-later-case-skips-default",
+              "question": "Java 27 without preview features. A matching constant follows default in source order. What is printed? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nswitch (2) {\n  default: System.out.print(\"D\");\n  case 2: System.out.print(\"B\"); break;\n}\nSystem.out.print(\"X\");\n```",
+              "correct_option": "Prints: BX",
+              "distractors": [
+                "Prints: DBX",
+                "Prints: DX",
+                "Compilation fails: default must precede no cases."
+              ],
+              "explanation": "Matching searches for an applicable case before using default, independent of the default position. The matching case two starts execution at B and breaks, then X prints. DBX incorrectly starts at default, DX ignores the matching constant, and this traditional constant-only layout is legal despite default being first. This contrasts with the earlier unmatched-selector middle-default example.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.3",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Matched constant skips an earlier default body instead of always entering default first.",
+              "verification": {
+                "code": "switch (2) {\n  default: System.out.print(\"D\");\n  case 2: System.out.print(\"B\"); break;\n}\nSystem.out.print(\"X\");",
+                "kind": "output",
+                "expected": "BX"
+              }
+            },
+            {
+              "key": "boxed-byte-selector-unboxing",
+              "question": "Java 27 without preview features. A boxed Byte is used with primitive constant labels. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nByte mode = Byte.valueOf((byte) 2);\nswitch (mode) {\n  case 2: System.out.print(\"two\"); break;\n  default: System.out.print(\"other\");\n}\n```",
+              "correct_option": "Prints: two",
+              "distractors": [
+                "Prints: other",
+                "Compilation fails: boxed integral selectors are forbidden.",
+                "Throws ClassCastException."
+              ],
+              "explanation": "Byte is a supported boxed selector type for this constant switch. Its non-null value is unboxed and compared with the compatible constant two. The wrapper does not require identity matching against a case object, the syntax is legal, and no cast to a different wrapper occurs. A null Byte would instead fail unboxing.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.3",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Non-null boxed small-integral selector is unboxed for constant-case matching.",
+              "verification": {
+                "code": "Byte mode = Byte.valueOf((byte) 2);\nswitch (mode) {\n  case 2: System.out.print(\"two\"); break;\n  default: System.out.print(\"other\");\n}",
+                "kind": "output",
+                "expected": "two"
+              }
+            },
+            {
+              "key": "case-constant-outside-byte-range",
+              "question": "Java 27 without preview features. A byte selector has an out-of-range int constant label. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nbyte mode = 1;\nswitch (mode) {\n  case 128: System.out.print(\"large\"); break;\n  default: System.out.print(\"other\");\n}\n```",
+              "correct_option": "Compilation fails: 128 cannot be converted to the byte selector type for this label.",
+              "distractors": [
+                "Prints: other",
+                "Prints: large",
+                "Throws ArithmeticException."
+              ],
+              "explanation": "The constant case label must be compatible with the selector type. The int constant 128 does not fit byte, so it cannot use the representable-constant narrowing allowed here. Compilation fails even though the shown selector is one and would never equal 128. Java does not silently ignore or wrap the label, nor check it by a runtime exception.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Case-label compatibility checks representable constant range for a byte selector.",
+              "verification": {
+                "code": "byte mode = 1;\nswitch (mode) {\n  case 128: System.out.print(\"large\"); break;\n  default: System.out.print(\"other\");\n}",
+                "kind": "compile_error",
+                "expected": "lossy conversion"
+              }
+            },
+            {
+              "key": "fallthrough-local-not-assigned-on-direct-entry",
+              "question": "Java 27 without preview features. A local declared in one colon case is read in the next. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nint mode = 2;\nswitch (mode) {\n  case 1:\n    int value = 7;\n  case 2:\n    System.out.print(value);\n    break;\n}\n```",
+              "correct_option": "Compilation fails: direct entry to case 2 can read value before assignment.",
+              "distractors": [
+                "Prints: 7",
+                "Prints: 0",
+                "Compilation fails: value is never in scope in case 2."
+              ],
+              "explanation": "Colon groups share the enclosing block scope, so value is visible in the later group. Definite assignment is different: matching case two enters after its initializer, making the read invalid. Seven assumes execution fell through case one, zero assumes a local default, and the scope-error option confuses visibility with assignment safety.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-16.html#jls-16.2.9",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "A visible colon-case local may be unassigned when matching enters a later group directly.",
+              "verification": {
+                "code": "int mode = 2;\nswitch (mode) {\n  case 1:\n    int value = 7;\n  case 2:\n    System.out.print(value);\n    break;\n}",
+                "kind": "compile_error",
+                "expected": "might not have been initialized"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "switch-fallthrough",
+            "switch-no-match",
+            "switch-null",
+            "default-middle-falls-forward",
+            "shared-case-group",
+            "selector-once-no-rematch",
+            "duplicate-folded-case-label",
+            "nonconstant-case-label",
+            "string-case-content-matching"
+          ]
+        },
+        {
+          "key": "switch-expression",
+          "title": "Arrow switch rules, yield and exhaustiveness",
+          "objective": "Predict non-falling-through arrow rules and return values from exhaustive switch expressions.",
+          "cards": [
+            {
+              "key": "statement-arrow-not-arbitrary-value",
+              "question": "Java 27 without preview features. This switch is a statement rather than an expression. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nswitch (1) {\n  case 1 -> 7;\n  default -> 0;\n}\n```",
+              "correct_option": "Compilation fails: an arrow statement rule cannot consist of this bare numeric expression.",
+              "distractors": [
+                "Completes normally without printing.",
+                "Prints: 7",
+                "Throws IllegalStateException."
+              ],
+              "explanation": "Arrow switch statement expressions must be statement expressions, such as assignments or method calls. A bare literal is a value expression but not a statement expression. It is legal as a result in a switch expression used appropriately, not in this statement form. The code is rejected rather than discarding, printing or throwing for the numeric value.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.28.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Arrow switch statement and expression have different allowed expression-rule bodies.",
+              "verification": {
+                "code": "switch (1) {\n  case 1 -> 7;\n  default -> 0;\n}",
+                "kind": "compile_error",
+                "expected": "not a statement"
+              }
+            },
+            {
+              "key": "arrow-statement-nonexhaustive",
+              "question": "Java 27 without preview features. A traditional int switch statement uses arrows without default. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nint mode = 9;\nswitch (mode) {\n  case 1 -> System.out.print(\"one \");\n}\nSystem.out.print(\"done\");\n```",
+              "correct_option": "Prints: done",
+              "distractors": [
+                "Compilation fails: arrow syntax always requires exhaustiveness.",
+                "Prints: one done",
+                "Throws IllegalStateException."
+              ],
+              "explanation": "Arrow syntax alone does not turn this traditional int switch statement into a switch expression or an enhanced pattern switch. With no applicable constant and no default, it does nothing, then done prints. Exhaustiveness rules are not determined solely by the arrow token. The selector does not match one, and lack of a match here does not throw.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Traditional arrow statement can remain nonexhaustive, unlike a switch expression.",
+              "verification": {
+                "code": "int mode = 9;\nswitch (mode) {\n  case 1 -> System.out.print(\"one \");\n}\nSystem.out.print(\"done\");",
+                "kind": "output",
+                "expected": "done"
+              }
+            },
+            {
+              "key": "return-cannot-exit-switch-expression",
+              "question": "Java 27 without preview features. A method return tries to escape a switch-expression rule. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nclass Lookup {\n  int find() {\n    return switch (1) {\n      default -> { return 7; }\n    };\n  }\n}\nSystem.out.print(new Lookup().find());\n```",
+              "correct_option": "Compilation fails: return cannot jump out of the enclosing switch expression.",
+              "distractors": [
+                "Prints: 7",
+                "Prints: 1",
+                "Throws IllegalStateException."
+              ],
+              "explanation": "A return may not transfer control out through an enclosing switch expression. In this block, yield 7 would provide the expression result for the outer return. Neither the method value nor selector prints, and this is a compile-time transfer restriction rather than a runtime failure. Switch statement blocks allow different return usage because there is no intervening switch expression.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.17",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Method return cannot cross a switch-expression boundary; yield is the needed result transfer.",
+              "verification": {
+                "code": "class Lookup {\n  int find() {\n    return switch (1) {\n      default -> { return 7; }\n    };\n  }\n}\nSystem.out.print(new Lookup().find());",
+                "kind": "compile_error",
+                "expected": "attempt to return out of a switch expression"
+              }
+            },
+            {
+              "key": "standalone-switch-numeric-common-type",
+              "question": "Java 27 without preview features. A var initializer gives the switch no target type. What is printed? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nvar result = switch (1) {\n  case 1 -> 4;\n  default -> 6.5;\n};\nSystem.out.print(((Object) result).getClass().getSimpleName() + \" \" + result);\n```",
+              "correct_option": "Prints: Double 4.0",
+              "distractors": [
+                "Prints: Integer 4",
+                "Prints: Double 6.5",
+                "Compilation fails: numeric switch results must have identical types."
+              ],
+              "explanation": "Without a target type from var, this standalone switch computes a numeric result type from both int and double alternatives, yielding double. The selected int value is converted to 4.0. Integer 4 considers only the selected branch when determining the type; 6.5 selects default incorrectly; differing numeric result types can be promoted compatibly.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.28.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Standalone switch numeric typing uses all result alternatives, not only the selected one.",
+              "verification": {
+                "code": "var result = switch (1) {\n  case 1 -> 4;\n  default -> 6.5;\n};\nSystem.out.print(((Object) result).getClass().getSimpleName() + \" \" + result);",
+                "kind": "output",
+                "expected": "Double 4.0"
+              }
+            },
+            {
+              "key": "object-target-switch-boxes-selected-type",
+              "question": "Java 27 without preview features. The same result kinds now have Object as their target. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject result = switch (1) {\n  case 1 -> 4;\n  default -> 6.5;\n};\nSystem.out.print(result.getClass().getSimpleName() + \" \" + result);\n```",
+              "correct_option": "Prints: Integer 4",
+              "distractors": [
+                "Prints: Double 4.0",
+                "Prints: Double 6.5",
+                "Compilation fails: primitive values cannot be assigned to Object."
+              ],
+              "explanation": "This assignment gives the switch expression target type Object. Each result expression must be assignment-compatible with that target, so the selected int is boxed as Integer. Double 4.0 incorrectly applies standalone numeric promotion; 6.5 selects the wrong rule; boxing makes primitive results compatible with Object. Target context changes the typing, not which label matches.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.28.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Target-typed reference switch can box each result separately instead of standalone numeric promotion.",
+              "verification": {
+                "code": "Object result = switch (1) {\n  case 1 -> 4;\n  default -> 6.5;\n};\nSystem.out.print(result.getClass().getSimpleName() + \" \" + result);",
+                "kind": "output",
+                "expected": "Integer 4"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "arrow-no-fallthrough",
+            "block-yield",
+            "exhaustive-expression",
+            "explicit-null-switch-case",
+            "grouped-arrow-labels",
+            "selected-throw-arm",
+            "block-missing-yield",
+            "enum-exhaustive-without-default",
+            "yield-exits-enclosing-expression"
+          ]
+        },
+        {
+          "key": "scope-reachability",
+          "title": "Scope and statement reachability",
+          "objective": "Respect for-variable scope and distinguish Java reachability rules for while and if.",
+          "cards": [
+            {
+              "key": "or-does-not-prove-pattern-match",
+              "question": "Java 27 without preview features. A pattern variable is used in the right side of ||. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"go\";\nif (payload instanceof String text || text.isEmpty()) {\n  System.out.print(\"accepted\");\n}\n```",
+              "correct_option": "Compilation fails: text is not in scope where the right operand requires a failed match.",
+              "distractors": [
+                "Prints: accepted",
+                "Throws NullPointerException.",
+                "Completes normally without printing."
+              ],
+              "explanation": "The right operand of || runs when its left side is false. For this positive instanceof pattern, that path has not established a String binding, so text is unavailable there. The actual shown value does not waive static scope rules. Compilation prevents every output or exception choice. Use && for a predicate that requires a successful positive match.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-6.html#jls-6.3.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Positive pattern variable is not available in an OR operand reached on failed match.",
+              "verification": {
+                "code": "Object payload = \"go\";\nif (payload instanceof String text || text.isEmpty()) {\n  System.out.print(\"accepted\");\n}",
+                "kind": "compile_error",
+                "expected": "cannot find symbol"
+              }
+            },
+            {
+              "key": "negated-pattern-return-enables-following-scope",
+              "question": "Java 27 without preview features. A negative type guard returns before the positive path. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nclass Parser {\n  int size(Object value) {\n    if (!(value instanceof String text)) return -1;\n    return text.length();\n  }\n}\nSystem.out.print(new Parser().size(\"go\"));\n```",
+              "correct_option": "Prints: 2",
+              "distractors": [
+                "Compilation fails: a pattern variable is only in scope inside its if body.",
+                "Prints: -1",
+                "Throws ClassCastException."
+              ],
+              "explanation": "The path that fails to match returns, so any continuation past the if is known to have matched String. text is therefore in scope for the later return. Two prints for go; -1 selects the unchosen failure path, and no unsafe cast is performed. Pattern scope follows guaranteed matching paths rather than just the nearest braces.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-6.html#jls-6.3.2.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Negated pattern plus abrupt guard gives a definitely matched binding after the if.",
+              "verification": {
+                "code": "class Parser {\n  int size(Object value) {\n    if (!(value instanceof String text)) return -1;\n    return text.length();\n  }\n}\nSystem.out.print(new Parser().size(\"go\"));",
+                "kind": "output",
+                "expected": "2"
+              }
+            },
+            {
+              "key": "break-cannot-cross-switch-expression",
+              "question": "Java 27 without preview features. A rule attempts to break out to an enclosing labeled loop. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nouter: for (int i = 0; i < 1; i++) {\n  int result = switch (i) {\n    default -> { break outer; }\n  };\n  System.out.print(result);\n}\n```",
+              "correct_option": "Compilation fails: break cannot jump through the enclosing switch expression.",
+              "distractors": [
+                "Completes normally without printing.",
+                "Prints: 0",
+                "Throws IllegalStateException."
+              ],
+              "explanation": "Even though outer names an enclosing loop, break may not cross a switch-expression boundary to reach it. The rule needs a legal result or abrupt completion permitted for expressions. Compilation rejects the transfer; it does not exit normally, substitute zero for result or throw a runtime control-flow exception. This differs from a break inside a switch statement.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.15",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Labeled break cannot escape through an intervening switch expression.",
+              "verification": {
+                "code": "outer: for (int i = 0; i < 1; i++) {\n  int result = switch (i) {\n    default -> { break outer; }\n  };\n  System.out.print(result);\n}",
+                "kind": "compile_error",
+                "expected": "attempt to break out of a switch expression"
+              }
+            },
+            {
+              "key": "case-blocks-separate-local-names",
+              "question": "Java 27 without preview features. Braces give each colon case its own locals. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nint code = 2;\nswitch (code) {\n  case 1: { int value = 10; System.out.print(value); break; }\n  case 2: { int value = 20; System.out.print(value); break; }\n}\n```",
+              "correct_option": "Prints: 20",
+              "distractors": [
+                "Compilation fails: the name value is duplicated inside the switch.",
+                "Prints: 10",
+                "Prints: 1020"
+              ],
+              "explanation": "Each explicit block has its own local scope, so the two value declarations do not conflict. Matching case two prints twenty and breaks. The compiler-error choice ignores the added blocks, ten selects the wrong case, and 1020 starts execution in case one despite the matching case two. This is a practical repair for shared-scope colon cases.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-6.html#jls-6.3",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Separate blocks repair duplicate local declarations in colon case groups.",
+              "verification": {
+                "code": "int code = 2;\nswitch (code) {\n  case 1: { int value = 10; System.out.print(value); break; }\n  case 2: { int value = 20; System.out.print(value); break; }\n}",
+                "kind": "output",
+                "expected": "20"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "for-scope",
+            "while-false-unreachable",
+            "if-false-reachable",
+            "statement-after-unconditional-return",
+            "infinite-while-no-exit-reachability",
+            "loop-break-definite-assignment",
+            "colon-case-shared-local-scope"
+          ]
+        },
+        {
+          "key": "reference-patterns",
+          "title": "Reference patterns, guards and dominance",
+          "objective": "Match reference types with final pattern syntax, apply guards, reason about dominance/null handling and respect pattern-variable scope.",
+          "identity_card_keys": [],
+          "cards": [
+            {
+              "key": "type-pattern-binds-value",
+              "question": "Java 27 without preview features. A decoded Object is handled by its runtime reference type. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"data\";\nint size = switch (payload) {\n  case String text -> text.length();\n  default -> -1;\n};\nSystem.out.print(size);\n```",
+              "correct_option": "Prints: 4",
+              "distractors": [
+                "Prints: -1",
+                "Throws ClassCastException.",
+                "Compilation fails: reference type patterns require preview."
+              ],
+              "explanation": "The String pattern matches the actual String object and binds text to it, allowing length() without a manual cast. The expression yields four. -1 ignores a matching type, ClassCastException invents an unsafe cast, and this reference type-pattern syntax is final for the stated target. No preview primitive patterns are used.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Basic reference type pattern both tests type and binds the matched value.",
+              "verification": {
+                "code": "Object payload = \"data\";\nint size = switch (payload) {\n  case String text -> text.length();\n  default -> -1;\n};\nSystem.out.print(size);",
+                "kind": "output",
+                "expected": "4"
+              }
+            },
+            {
+              "key": "failed-guard-next-same-type",
+              "question": "Java 27 without preview features. A String matches the type but fails its first guard. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"go\";\nString kind = switch (payload) {\n  case String text when text.length() > 3 -> \"long\";\n  case String text -> \"short\";\n  default -> \"other\";\n};\nSystem.out.print(kind);\n```",
+              "correct_option": "Prints: short",
+              "distractors": [
+                "Prints: long",
+                "Prints: other",
+                "Compilation fails: two String patterns always conflict."
+              ],
+              "explanation": "The first type pattern matches, but its guard is false. Matching continues and the next unguarded String pattern selects short. A false guard does not jump directly to default. Two same-type patterns are legal when the earlier one is guarded this way; long ignores the guard and other skips the later applicable pattern.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Failed guard allows a later same-type pattern rather than selecting default immediately.",
+              "verification": {
+                "code": "Object payload = \"go\";\nString kind = switch (payload) {\n  case String text when text.length() > 3 -> \"long\";\n  case String text -> \"short\";\n  default -> \"other\";\n};\nSystem.out.print(kind);",
+                "kind": "output",
+                "expected": "short"
+              }
+            },
+            {
+              "key": "guard-skipped-on-type-mismatch",
+              "question": "Java 27 without preview features. A guard has an observable API call. When does it run? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nclass Audit { int calls; boolean approve(String text) { calls++; return true; } }\nAudit audit = new Audit();\nObject payload = Integer.valueOf(3);\nString result = switch (payload) {\n  case String text when audit.approve(text) -> \"text\";\n  case Integer number -> \"number\";\n  default -> \"other\";\n};\nSystem.out.print(result + \" \" + audit.calls);\n```",
+              "correct_option": "Prints: number 0",
+              "distractors": [
+                "Prints: number 1",
+                "Prints: text 1",
+                "Throws ClassCastException."
+              ],
+              "explanation": "The guard is evaluated only after its associated pattern matches. The payload is Integer, so the String guard call is skipped and the Integer rule wins. number 1 evaluates a guard before establishing its pattern variable, text 1 ignores the type mismatch, and pattern testing does not cast an Integer to String and throw.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Guard side effects occur only after the associated reference type matches.",
+              "verification": {
+                "code": "class Audit { int calls; boolean approve(String text) { calls++; return true; } }\nAudit audit = new Audit();\nObject payload = Integer.valueOf(3);\nString result = switch (payload) {\n  case String text when audit.approve(text) -> \"text\";\n  case Integer number -> \"number\";\n  default -> \"other\";\n};\nSystem.out.print(result + \" \" + audit.calls);",
+                "kind": "output",
+                "expected": "number 0"
+              }
+            },
+            {
+              "key": "nullable-guard-unboxes",
+              "question": "Java 27 without preview features. A matching pattern has a nullable Boolean guard. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"go\";\nBoolean approved = null;\nString result = switch (payload) {\n  case String text when approved -> \"accepted\";\n  default -> \"other\";\n};\nSystem.out.print(result);\n```",
+              "correct_option": "Throws NullPointerException.",
+              "distractors": [
+                "Prints: other",
+                "Prints: accepted",
+                "Compilation fails: guards must have primitive boolean type."
+              ],
+              "explanation": "A guard may have Boolean type, but evaluating it requires unboxing to decide whether it is true. The String pattern matches; approved is then unboxed and null throws. It is not treated as false or true, and the expression does not continue to default after this failure. The guard is statically legal.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Nullable Boolean guards can fail during matching instead of behaving as false.",
+              "verification": {
+                "code": "Object payload = \"go\";\nBoolean approved = null;\nString result = switch (payload) {\n  case String text when approved -> \"accepted\";\n  default -> \"other\";\n};\nSystem.out.print(result);",
+                "kind": "runtime_exception",
+                "expected": "NullPointerException"
+              }
+            },
+            {
+              "key": "wider-pattern-dominates-narrower",
+              "question": "Java 27 without preview features. A broad reference pattern appears before a narrower one. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"go\";\nString result = switch (payload) {\n  case CharSequence sequence -> \"sequence\";\n  case String text -> \"string\";\n  default -> \"other\";\n};\nSystem.out.print(result);\n```",
+              "correct_option": "Compilation fails: the earlier CharSequence pattern dominates String.",
+              "distractors": [
+                "Prints: sequence",
+                "Prints: string",
+                "Prints: other"
+              ],
+              "explanation": "Every non-null String also implements CharSequence, so the later String pattern can never be selected after the unguarded broad pattern. Dominance is a compile-time restriction, not a first-match choice allowed to run. Neither sequence nor string nor other prints. Put a narrower pattern first when it needs distinct handling.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Subtype pattern dominance prevents an unreachable narrower case.",
+              "verification": {
+                "code": "Object payload = \"go\";\nString result = switch (payload) {\n  case CharSequence sequence -> \"sequence\";\n  case String text -> \"string\";\n  default -> \"other\";\n};\nSystem.out.print(result);",
+                "kind": "compile_error",
+                "expected": "dominated"
+              }
+            },
+            {
+              "key": "constant-true-guard-dominance",
+              "question": "Java 27 without preview features. Does a guard that is the constant true prevent dominance? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"go\";\nString result = switch (payload) {\n  case String text when true -> \"first\";\n  case String text -> \"second\";\n  default -> \"other\";\n};\nSystem.out.print(result);\n```",
+              "correct_option": "Compilation fails: a constant-true guarded String case dominates the later String case.",
+              "distractors": [
+                "Prints: first",
+                "Prints: second",
+                "Prints: other"
+              ],
+              "explanation": "A guard that is a constant expression with value true is treated as unguarded for this dominance rule. The second String case is therefore rejected. The presence of when alone does not make every duplicate pattern legal. Compilation prevents all three output choices; a guard that can actually filter inputs is a different situation.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Constant-true guards are treated as unguarded for dominance.",
+              "verification": {
+                "code": "Object payload = \"go\";\nString result = switch (payload) {\n  case String text when true -> \"first\";\n  case String text -> \"second\";\n  default -> \"other\";\n};\nSystem.out.print(result);",
+                "kind": "compile_error",
+                "expected": "dominated"
+              }
+            },
+            {
+              "key": "unconditional-pattern-plus-default",
+              "question": "Java 27 without preview features. An Object pattern is paired with default. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = 3;\nString result = switch (payload) {\n  case Object value -> \"object\";\n  default -> \"other\";\n};\nSystem.out.print(result);\n```",
+              "correct_option": "Compilation fails: an unconditional pattern and default cannot both appear here.",
+              "distractors": [
+                "Prints: object",
+                "Prints: other",
+                "Throws NullPointerException."
+              ],
+              "explanation": "Object is unconditional for the Object selector type and already supplies the match-all coverage role. Adding default violates the switch-block rule against both kinds of match-all label. The source is rejected rather than running either output. The non-null selector would not cause a null failure; removing default addresses this compile-time problem.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Unconditional type pattern cannot coexist with an additional default label.",
+              "verification": {
+                "code": "Object payload = 3;\nString result = switch (payload) {\n  case Object value -> \"object\";\n  default -> \"other\";\n};\nSystem.out.print(result);",
+                "kind": "compile_error",
+                "expected": "unconditional pattern and a default label"
+              }
+            },
+            {
+              "key": "object-pattern-does-not-handle-null",
+              "question": "Java 27 without preview features. A switch has only an exhaustive Object pattern. What happens for null? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = null;\nString result = switch (payload) {\n  case Object value -> \"object\";\n};\nSystem.out.print(result);\n```",
+              "correct_option": "Throws NullPointerException.",
+              "distractors": [
+                "Prints: object",
+                "Prints: null",
+                "Compilation fails: the Object pattern cannot make the switch exhaustive."
+              ],
+              "explanation": "The Object pattern establishes reference-type coverage but does not act as an explicit null handler. A null selector therefore throws when there is no case null. object incorrectly treats coverage as null matching; null is not an implicit returned value; and compile-time exhaustiveness is satisfied even though this runtime null path fails.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Exhaustive Object type pattern still requires explicit handling for a null selector.",
+              "verification": {
+                "code": "Object payload = null;\nString result = switch (payload) {\n  case Object value -> \"object\";\n};\nSystem.out.print(result);",
+                "kind": "runtime_exception",
+                "expected": "NullPointerException"
+              }
+            },
+            {
+              "key": "combined-null-default-label",
+              "question": "Java 27 without preview features. A fallback handles null and all unmatched reference values. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = null;\nString result = switch (payload) {\n  case String text -> \"text\";\n  case null, default -> \"fallback\";\n};\nSystem.out.print(result);\n```",
+              "correct_option": "Prints: fallback",
+              "distractors": [
+                "Throws NullPointerException.",
+                "Prints: text",
+                "Compilation fails: null and default cannot share a label."
+              ],
+              "explanation": "The combined case null, default label is a legal final fallback covering both null and unmatched values. It selects fallback here. Unlike plain default, it explicitly includes null, so no exception occurs. A null value does not match the String type pattern, and this combined label is permitted without preview features for the target.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Combined null/default label explicitly covers both missing and unmatched reference values.",
+              "verification": {
+                "code": "Object payload = null;\nString result = switch (payload) {\n  case String text -> \"text\";\n  case null, default -> \"fallback\";\n};\nSystem.out.print(result);",
+                "kind": "output",
+                "expected": "fallback"
+              }
+            },
+            {
+              "key": "pattern-name-outside-rule",
+              "question": "Java 27 without preview features. A pattern variable is referenced after its switch rule. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"go\";\nint size = switch (payload) {\n  case String text -> text.length();\n  default -> 0;\n};\nSystem.out.print(text);\n```",
+              "correct_option": "Compilation fails: text is not in scope after the switch expression.",
+              "distractors": [
+                "Prints: go",
+                "Prints: 2",
+                "Prints: null"
+              ],
+              "explanation": "text is available in its matching rule, where text.length() is valid, but is not declared as a local for the following statement. The later reference is rejected. The switch does not export its pattern binding, substitute size, or give text a default null value. Use the switch result or a separately declared local when data must survive outside the rule.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-6.html#jls-6.3.1.6",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Pattern variable is scoped to its applicable rule rather than exported from switch.",
+              "verification": {
+                "code": "Object payload = \"go\";\nint size = switch (payload) {\n  case String text -> text.length();\n  default -> 0;\n};\nSystem.out.print(text);",
+                "kind": "compile_error",
+                "expected": "cannot find symbol"
+              }
+            },
+            {
+              "key": "constant-false-guard-invalid",
+              "question": "Java 27 without preview features. A disabled case uses a constant false guard. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nObject payload = \"go\";\nString result = switch (payload) {\n  case String text when false -> \"disabled\";\n  default -> \"other\";\n};\nSystem.out.print(result);\n```",
+              "correct_option": "Compilation fails: a constant-false expression is not allowed as this guard.",
+              "distractors": [
+                "Prints: other",
+                "Prints: disabled",
+                "Throws IllegalStateException."
+              ],
+              "explanation": "A guard that is a constant expression with value false is expressly disallowed. The compiler does not simply discard this case and choose default. Neither output nor runtime exception occurs. This restriction differs from an ordinary guard whose runtime result happens to be false, which legally allows matching to continue.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "A constant-false guard is rejected rather than treated as a runtime filter.",
+              "verification": {
+                "code": "Object payload = \"go\";\nString result = switch (payload) {\n  case String text when false -> \"disabled\";\n  default -> \"other\";\n};\nSystem.out.print(result);",
+                "kind": "compile_error",
+                "expected": "constant expression with value 'false'"
+              }
+            },
+            {
+              "key": "type-pattern-dominates-string-constant",
+              "question": "Java 27 without preview features. A String type pattern comes before a particular String constant. What happens? The code is inside standard main(String[] args), with no command-line arguments. No imports are needed.\n\n```java\nString payload = \"go\";\nString result = switch (payload) {\n  case String text -> \"text\";\n  case \"go\" -> \"command\";\n};\nSystem.out.print(result);\n```",
+              "correct_option": "Compilation fails: the unguarded String pattern dominates the go constant label.",
+              "distractors": [
+                "Prints: text",
+                "Prints: command",
+                "Compilation fails: String selectors cannot use type patterns."
+              ],
+              "explanation": "Every selector equal to the String constant go also matches the earlier String pattern. That constant label is dominated and rejected, even though it is not another type pattern. Java does not automatically prioritize constants over source order, so neither output occurs. String selectors do permit reference type patterns; ordering is the problem. Put special constants before an unguarded pattern that covers their type.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.11.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "coverage_gap": "Dominance also applies from an unguarded type pattern to a covered constant label.",
+              "verification": {
+                "code": "String payload = \"go\";\nString result = switch (payload) {\n  case String text -> \"text\";\n  case \"go\" -> \"command\";\n};\nSystem.out.print(result);",
+                "kind": "compile_error",
+                "expected": "dominated"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "question": "This valid card should not be saved because the batch is invalid.",
+    "answer": "Nothing should be imported."
+  },
+  {
+    "question": "This card has an unsupported study mode.",
+    "answer": "Fix the mode before importing.",
+    "card_type": "unsupported_mode"
+  }
+]

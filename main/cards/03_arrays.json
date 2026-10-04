@@ -53,7 +53,7 @@
   {
     "question": "Fill in the correct method to compare nested/multidimensional arrays for deep content equality:\n```java\nString[][] a = {{\"A\"}};\nString[][] b = {{\"A\"}};\nboolean match = Arrays._____________(a, b);\n```",
     "answer": "deepEquals",
-    "card_type": "fill_in_the_blank",
+    "card_type": "fill_blank",
     "distractors": [],
     "is_code": true
   },

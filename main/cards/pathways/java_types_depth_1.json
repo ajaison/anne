@@ -1,0 +1,732 @@
+{
+  "id": "java-types-depth-batch-1",
+  "version": 1,
+  "java_release": 27,
+  "preview_features": false,
+  "topics": [
+    {
+      "key": "types",
+      "title": "Types, variables and operators",
+      "aliases": [
+        "Variables",
+        "Types and variables",
+        "Variables & Data Types"
+      ],
+      "objective": "Understand primitive/reference types, conversions, expressions and operator edge cases.",
+      "concepts": [
+        {
+          "key": "values",
+          "title": "Primitive values and references",
+          "objective": "Distinguish copied primitive values from shared object references and understand char values.",
+          "cards": [
+            {
+              "key": "final-reference-mutation",
+              "question": "Java 27, no preview features. A settings object is held in a final local. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nclass Settings { int retries = 2; }\nfinal Settings settings = new Settings();\nsettings.retries = 4;\nSystem.out.print(settings.retries);\n```",
+              "correct_option": "Prints: 4",
+              "distractors": [
+                "Prints: 2",
+                "Compilation fails: a final reference forbids field mutation.",
+                "Throws UnsupportedOperationException."
+              ],
+              "explanation": "final prevents assigning a different reference to settings; it does not make the referenced object immutable. The field assignment therefore stores 4. The value is not frozen at 2, the assignment is legal, and ordinary mutable fields do not throw UnsupportedOperationException. Use an immutable object design if its state must stay fixed.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-4.html#jls-4.12.4",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "class Settings { int retries = 2; }\nfinal Settings settings = new Settings();\nsettings.retries = 4;\nSystem.out.print(settings.retries);",
+                "kind": "output",
+                "expected": "4"
+              }
+            },
+            {
+              "key": "reference-cast-runtime",
+              "question": "Java 27, no preview features. A decoded value is stored as Object. What happens at the cast? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nObject payload = \"42\";\nInteger count = (Integer) payload;\nSystem.out.print(count);\n```",
+              "correct_option": "Throws ClassCastException.",
+              "distractors": [
+                "Prints: 42",
+                "Compilation fails: Object can never be cast to Integer.",
+                "Throws NumberFormatException."
+              ],
+              "explanation": "The static Object type permits a checked cast to Integer, but the actual object is a String, so the runtime check fails. Casting does not parse text and cannot produce 42; parsing APIs would be needed. The cast is statically legal, and no number parser runs, so NumberFormatException is not the failure.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-5.html#jls-5.1.6.3",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "Object payload = \"42\";\nInteger count = (Integer) payload;\nSystem.out.print(count);",
+                "kind": "runtime_exception",
+                "expected": "ClassCastException"
+              }
+            },
+            {
+              "key": "null-cast-safe",
+              "question": "Java 27, no preview features. A missing reference is cast to a more specific type. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nObject payload = null;\nString text = (String) payload;\nSystem.out.print(text == null);\n```",
+              "correct_option": "Prints: true",
+              "distractors": [
+                "Prints: false",
+                "Throws ClassCastException.",
+                "Throws NullPointerException."
+              ],
+              "explanation": "A reference cast preserves null and succeeds. The resulting text reference is still null, making the comparison true. Casting does not allocate a String, null does not fail the cast check, and comparison with null does not dereference or unbox anything.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-5.html#jls-5.1.6.3",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "Object payload = null;\nString text = (String) payload;\nSystem.out.print(text == null);",
+                "kind": "output",
+                "expected": "true"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "primitive-copy",
+            "reference-copy",
+            "unsigned-char"
+          ]
+        },
+        {
+          "key": "literals-inference",
+          "title": "Literals and local type inference",
+          "objective": "Choose valid numeric literal forms and understand that var infers a fixed static type.",
+          "cards": [
+            {
+              "key": "radix-leading-zero",
+              "question": "Java 27, no preview features. A configuration constant has a leading zero. What is printed? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint permissions = 010;\nint hex = 0x10;\nint binary = 0b10;\nSystem.out.print(permissions + \" \" + hex + \" \" + binary);\n```",
+              "correct_option": "Prints: 8 16 2",
+              "distractors": [
+                "Prints: 10 16 2",
+                "Prints: 10 10 10",
+                "Compilation fails: only decimal integer literals are allowed."
+              ],
+              "explanation": "010 is octal, 0x10 hexadecimal, and 0b10 binary, giving 8, 16, and 2. A leading zero is not ignored, different radices do not all mean decimal ten, and all three forms are legal. Avoid decorative leading zeros in decimal-looking configuration values.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-3.html#jls-3.10.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int permissions = 010;\nint hex = 0x10;\nint binary = 0b10;\nSystem.out.print(permissions + \" \" + hex + \" \" + binary);",
+                "kind": "output",
+                "expected": "8 16 2"
+              }
+            },
+            {
+              "key": "underscore-prefix",
+              "question": "Java 27, no preview features. A developer groups digits in a hexadecimal literal. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint mask = 0x_FF;\nSystem.out.print(mask);\n```",
+              "correct_option": "Compilation fails: the underscore immediately follows the radix prefix.",
+              "distractors": [
+                "Prints: 255",
+                "Prints: 15",
+                "Prints: 0"
+              ],
+              "explanation": "Underscores may separate digits, but cannot occur directly after 0x. There is no output: neither 255, 15 nor 0 is produced. Writing 0xFF or 0xF_F is legal; underscores do not remove digits or change the numeric value.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-3.html#jls-3.10.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int mask = 0x_FF;\nSystem.out.print(mask);",
+                "kind": "compile_error",
+                "expected": "illegal underscore"
+              }
+            },
+            {
+              "key": "float-literal-suffix",
+              "question": "Java 27, no preview features. A measurement uses a float variable. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nfloat ratio = 0.5;\nSystem.out.print(ratio);\n```",
+              "correct_option": "Compilation fails: a double literal cannot be implicitly narrowed to float.",
+              "distractors": [
+                "Prints: 0.5",
+                "Prints: 0.0",
+                "Throws ArithmeticException."
+              ],
+              "explanation": "An unsuffixed floating-point literal is double. Even though 0.5 is exactly representable in float, assignment does not implicitly narrow double to float. Use 0.5f or an explicit cast. Nothing prints, there is no truncation to zero, and this is a compile-time type error rather than a runtime arithmetic failure.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-3.html#jls-3.10.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "float ratio = 0.5;\nSystem.out.print(ratio);",
+                "kind": "compile_error",
+                "expected": "incompatible types"
+              }
+            },
+            {
+              "key": "var-byte-inference",
+              "question": "Java 27, no preview features. Does var always infer int for an integral initializer? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nbyte supplied = 7;\nvar copy = supplied;\ncopy = 128;\nSystem.out.print(copy);\n```",
+              "correct_option": "Compilation fails: copy has type byte and 128 is outside its range.",
+              "distractors": [
+                "Prints: 128",
+                "Prints: -128",
+                "Compilation fails: var cannot infer a type from a variable."
+              ],
+              "explanation": "The initializer supplied has type byte, so copy is byte. The constant 128 cannot be assigned without narrowing. var can infer from a variable; it does not automatically promote this initializer to int or silently wrap an out-of-range assignment. An explicit byte cast would wrap, but none is present.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-14.html#jls-14.4",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "byte supplied = 7;\nvar copy = supplied;\ncopy = 128;\nSystem.out.print(copy);",
+                "kind": "compile_error",
+                "expected": "incompatible types"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "long-literal",
+            "var-fixed-type",
+            "var-null"
+          ]
+        },
+        {
+          "key": "initialization",
+          "title": "Initialization and definite assignment",
+          "objective": "Distinguish default-initialized fields from local variables that must be assigned on every reachable path.",
+          "cards": [
+            {
+              "key": "final-constant-versus-local",
+              "question": "Java 27, no preview features. Which assignment is rejected? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nfinal int fixed = 12;\nint changing = 12;\nbyte a = fixed;\nbyte b = changing;\nSystem.out.print(a + \" \" + b);\n```",
+              "correct_option": "Compilation fails: assigning changing to b requires narrowing.",
+              "distractors": [
+                "Prints: 12 12",
+                "Compilation fails: both byte assignments require explicit casts.",
+                "Compilation fails: assigning fixed to a requires narrowing."
+              ],
+              "explanation": "fixed is a constant variable: final primitive type initialized with a constant expression. Its representable value can be narrowed in assignment. changing is not a constant expression merely because its value is currently 12, so b is rejected. a is legal; neither both assignments nor only a fails, and compilation produces no output.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-5.html#jls-5.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "final int fixed = 12;\nint changing = 12;\nbyte a = fixed;\nbyte b = changing;\nSystem.out.print(a + \" \" + b);",
+                "kind": "compile_error",
+                "expected": "incompatible types"
+              }
+            },
+            {
+              "key": "blank-final-branches",
+              "question": "Java 27, no preview features. A final local receives a value on each branch. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nfinal int retries;\nif (args.length == 0) retries = 2;\nelse retries = 5;\nSystem.out.print(retries);\n```",
+              "correct_option": "With no command-line arguments, prints: 2",
+              "distractors": [
+                "Compilation fails: final locals require a declaration initializer.",
+                "Compilation fails: two assignment statements violate final.",
+                "With no command-line arguments, prints: 0"
+              ],
+              "explanation": "A blank final local may be assigned after declaration when definite-assignment rules establish exactly one assignment on every path. These mutually exclusive branches satisfy that rule. With no arguments the first branch assigns 2. A declaration initializer is not mandatory, separate branch assignments do not mean two executions, and locals have no automatic zero default.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-16.html#jls-16",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "final int retries;\nif (args.length == 0) retries = 2;\nelse retries = 5;\nSystem.out.print(retries);",
+                "kind": "output",
+                "expected": "2"
+              }
+            },
+            {
+              "key": "final-not-constant-expression",
+              "question": "Java 27, no preview features. A final local is initialized by a method call. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nfinal int parsed = Integer.parseInt(\"12\");\nbyte small = parsed;\nSystem.out.print(small);\n```",
+              "correct_option": "Compilation fails: parsed is final but is not a constant variable.",
+              "distractors": [
+                "Prints: 12",
+                "Prints: -12",
+                "Throws NumberFormatException."
+              ],
+              "explanation": "A final primitive variable is a constant variable only if its initializer is a constant expression. A method invocation is not one, even with a literal argument and predictable result. Implicit constant narrowing is unavailable. There is no output or sign reversal; parsing \"12\" would succeed, but the assignment prevents compilation.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-4.html#jls-4.12.4",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "final int parsed = Integer.parseInt(\"12\");\nbyte small = parsed;\nSystem.out.print(small);",
+                "kind": "compile_error",
+                "expected": "incompatible types"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "local-unassigned",
+            "field-defaults",
+            "conditional-assignment"
+          ]
+        },
+        {
+          "key": "promotion",
+          "title": "Numeric promotion and narrowing assignments",
+          "objective": "Predict promoted arithmetic types, constant-expression narrowing and compound-assignment conversions.",
+          "cards": [
+            {
+              "key": "widening-loses-integer-precision",
+              "question": "Java 27, no preview features. An integer identifier is passed through float. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint id = 16_777_217;\nfloat stored = id;\nSystem.out.print((int) stored == id);\n```",
+              "correct_option": "Prints: false",
+              "distractors": [
+                "Prints: true",
+                "Compilation fails: int to float needs a cast.",
+                "Throws ArithmeticException."
+              ],
+              "explanation": "int to float is a widening conversion and is implicit, yet it can lose precision. This value rounds to 16,777,216, so converting back does not recover id. Widening is not a guarantee of exact representation. No cast is needed for the first assignment, and precision loss does not throw ArithmeticException.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-5.html#jls-5.1.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int id = 16_777_217;\nfloat stored = id;\nSystem.out.print((int) stored == id);",
+                "kind": "output",
+                "expected": "false"
+              }
+            },
+            {
+              "key": "float-to-int-boundaries",
+              "question": "Java 27, no preview features. A floating result is converted to an integer. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nSystem.out.print((int) Double.NaN + \" \" + (int) Double.POSITIVE_INFINITY + \" \" + (int) -3.9);\n```",
+              "correct_option": "Prints: 0 2147483647 -3",
+              "distractors": [
+                "Prints: 0 2147483647 -4",
+                "Throws ArithmeticException.",
+                "Prints: 0 -2147483648 -3"
+              ],
+              "explanation": "Floating-to-int narrowing maps NaN to zero, saturates positive infinity at Integer.MAX_VALUE, and truncates finite fractions toward zero. Thus -3.9 becomes -3, not -4. These casts do not throw, and positive infinity saturates rather than wrapping to the minimum value. Validate bounds before casting if saturation would hide bad input.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-5.html#jls-5.1.3",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "System.out.print((int) Double.NaN + \" \" + (int) Double.POSITIVE_INFINITY + \" \" + (int) -3.9);",
+                "kind": "output",
+                "expected": "0 2147483647 -3"
+              }
+            },
+            {
+              "key": "compound-fraction-loss",
+              "question": "Java 27, no preview features. A compound assignment adjusts an integer counter. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint count = 3;\ncount += 1.9;\nSystem.out.print(count);\n```",
+              "correct_option": "Prints: 4",
+              "distractors": [
+                "Prints: 5",
+                "Prints: 4.9",
+                "Compilation fails: compound assignment cannot narrow double."
+              ],
+              "explanation": "count += 1.9 performs double addition and implicitly casts the result back to int, discarding the fractional part of 4.9. It does not round to 5, count remains int rather than storing 4.9, and the implicit compound-assignment narrowing is legal. A plain count = count + 1.9 would require a cast.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.26.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int count = 3;\ncount += 1.9;\nSystem.out.print(count);",
+                "kind": "output",
+                "expected": "4"
+              }
+            },
+            {
+              "key": "boxing-no-widen-then-box",
+              "question": "Java 27, no preview features. A long wrapper is initialized from an int literal. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nLong total = 1;\nSystem.out.print(total);\n```",
+              "correct_option": "Compilation fails: assignment cannot widen int to long and then box to Long.",
+              "distractors": [
+                "Prints: 1",
+                "Prints: 1.0",
+                "Throws ClassCastException."
+              ],
+              "explanation": "Assignment conversion permits boxing followed by widening reference conversion, but not widening a primitive and then boxing it. 1 boxes to Integer, which is not Long. Use 1L to box a long directly. No value prints, no floating conversion occurs, and this fails before any runtime cast check.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-5.html#jls-5.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "Long total = 1;\nSystem.out.print(total);",
+                "kind": "compile_error",
+                "expected": "incompatible types"
+              }
+            },
+            {
+              "key": "unbox-then-widen",
+              "question": "Java 27, no preview features. A small wrapper feeds a wider primitive accumulator. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nInteger pending = 7;\nlong total = pending;\nSystem.out.print(total);\n```",
+              "correct_option": "Prints: 7",
+              "distractors": [
+                "Compilation fails: Integer cannot be assigned to long.",
+                "Throws ClassCastException.",
+                "Throws NullPointerException."
+              ],
+              "explanation": "Assignment permits unboxing Integer to int followed by widening int to long. The non-null value becomes 7. This conversion is legal and does not cast the object to Long, so there is no ClassCastException. Unboxing null would throw, but pending refers to a boxed value.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-5.html#jls-5.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "Integer pending = 7;\nlong total = pending;\nSystem.out.print(total);",
+                "kind": "output",
+                "expected": "7"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "byte-promotion",
+            "compound-narrowing",
+            "constant-range"
+          ]
+        },
+        {
+          "key": "integer-arithmetic",
+          "title": "Integer overflow, division and remainder",
+          "objective": "Identify arithmetic overflow before widening and predict division/remainder for negative integers.",
+          "cards": [
+            {
+              "key": "minimum-divided-negative-one",
+              "question": "Java 27, no preview features. An extreme signed value is divided by -1. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint value = Integer.MIN_VALUE;\nSystem.out.print((value / -1) + \" \" + (value % -1));\n```",
+              "correct_option": "Prints: -2147483648 0",
+              "distractors": [
+                "Prints: 2147483648 0",
+                "Throws ArithmeticException.",
+                "Prints: -2147483648 -1"
+              ],
+              "explanation": "The mathematical quotient is outside int range. Java specifies the minimum value as the quotient for this overflow case and a remainder of zero. It does not widen the quotient to long, throw for signed division overflow, or leave a remainder of -1. Zero divisors, unlike this overflow, do throw.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.17.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int value = Integer.MIN_VALUE;\nSystem.out.print((value / -1) + \" \" + (value % -1));",
+                "kind": "output",
+                "expected": "-2147483648 0"
+              }
+            },
+            {
+              "key": "cast-before-division",
+              "question": "Java 27, no preview features. A percentage calculation needs a fractional result. What is printed? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint successes = 1;\nint attempts = 4;\nSystem.out.print(((double) (successes / attempts)) + \" \" + ((double) successes / attempts));\n```",
+              "correct_option": "Prints: 0.0 0.25",
+              "distractors": [
+                "Prints: 0.25 0.25",
+                "Prints: 0.0 0.0",
+                "Compilation fails: mixed int and double division is forbidden."
+              ],
+              "explanation": "The first division happens as int arithmetic and truncates to zero before the cast. The second casts an operand first, making division double arithmetic with result 0.25. Casting the completed integer quotient cannot restore its fraction; mixed arithmetic is legal and promotes the other operand.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.17.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int successes = 1;\nint attempts = 4;\nSystem.out.print(((double) (successes / attempts)) + \" \" + ((double) successes / attempts));",
+                "kind": "output",
+                "expected": "0.0 0.25"
+              }
+            },
+            {
+              "key": "runtime-zero-divisor",
+              "question": "Java 27, no preview features. A divisor comes from a variable. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint divisor = 0;\nint result = 9 / divisor;\nSystem.out.print(result);\n```",
+              "correct_option": "Throws ArithmeticException.",
+              "distractors": [
+                "Prints: Infinity",
+                "Prints: 0",
+                "Compilation fails: every zero divisor is rejected statically."
+              ],
+              "explanation": "Integral division by zero throws ArithmeticException when evaluated. This ordinary local-variable expression compiles. Infinity is a floating-point division result, not an int value; Java does not substitute zero. The exception occurs before printing. Validate a runtime divisor when zero is possible.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.17.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int divisor = 0;\nint result = 9 / divisor;\nSystem.out.print(result);",
+                "kind": "runtime_exception",
+                "expected": "ArithmeticException"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "int-wrap",
+            "overflow-before-long",
+            "negative-division"
+          ]
+        },
+        {
+          "key": "floating-point",
+          "title": "Floating-point special values and precision",
+          "objective": "Recognize NaN, infinity and limits of binary floating-point equality.",
+          "cards": [
+            {
+              "key": "signed-zero-reciprocals",
+              "question": "Java 27, no preview features. A calculation preserves the sign of zero. What is printed? The following is inside a standard main method; args is its String[] parameter.\n\n```java\ndouble plus = 0.0;\ndouble minus = -0.0;\nSystem.out.print((plus == minus) + \" \" + (1.0 / plus) + \" \" + (1.0 / minus));\n```",
+              "correct_option": "Prints: true Infinity -Infinity",
+              "distractors": [
+                "Prints: false Infinity -Infinity",
+                "Prints: true Infinity Infinity",
+                "Throws ArithmeticException."
+              ],
+              "explanation": "Numeric equality treats the two zeros as equal, but their signs affect reciprocal division: positive and negative infinity respectively. Thus false is wrong for equality, losing the minus sign is wrong for the second reciprocal, and floating-point zero division does not throw ArithmeticException.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-4.html#jls-4.2.3",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "double plus = 0.0;\ndouble minus = -0.0;\nSystem.out.print((plus == minus) + \" \" + (1.0 / plus) + \" \" + (1.0 / minus));",
+                "kind": "output",
+                "expected": "true Infinity -Infinity"
+              }
+            },
+            {
+              "key": "nan-ordering",
+              "question": "Java 27, no preview features. A sensor yields NaN. What do these comparisons report? The following is inside a standard main method; args is its String[] parameter.\n\n```java\ndouble reading = Double.NaN;\nSystem.out.print((reading < 0) + \" \" + (reading >= 0) + \" \" + (reading != reading));\n```",
+              "correct_option": "Prints: false false true",
+              "distractors": [
+                "Prints: true false true",
+                "Prints: false true true",
+                "Prints: false false false"
+              ],
+              "explanation": "Ordered comparisons involving NaN are false, so neither a negative test nor a nonnegative test classifies it. Inequality with itself is true. NaN is not a negative sentinel, >= is not the logical complement of < in the presence of NaN, and NaN does not equal itself. Handle missing numeric readings explicitly.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.20.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "double reading = Double.NaN;\nSystem.out.print((reading < 0) + \" \" + (reading >= 0) + \" \" + (reading != reading));",
+                "kind": "output",
+                "expected": "false false true"
+              }
+            },
+            {
+              "key": "small-addition-disappears",
+              "question": "Java 27, no preview features. A large double accumulator is incremented. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\ndouble total = 1.0e20;\nSystem.out.print(total + 1.0 == total);\n```",
+              "correct_option": "Prints: true",
+              "distractors": [
+                "Prints: false",
+                "Throws ArithmeticException.",
+                "Compilation fails: decimal exponent literals require BigDecimal."
+              ],
+              "explanation": "At this magnitude, adjacent representable double values are much farther apart than one. The addition rounds back to total, making equality true. Real-number intuition would suggest false but does not model finite precision. Floating-point rounding does not throw, and exponent notation is legal for double literals.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.18.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "double total = 1.0e20;\nSystem.out.print(total + 1.0 == total);",
+                "kind": "output",
+                "expected": "true"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "nan-equality",
+            "floating-zero",
+            "decimal-equality"
+          ]
+        },
+        {
+          "key": "equality-unboxing",
+          "title": "Equality, boxing and null unboxing",
+          "objective": "Distinguish value comparisons from reference identity and detect null unboxing.",
+          "cards": [
+            {
+              "key": "cached-constant-boxing",
+              "question": "Java 27, no preview features. Which result is guaranteed by constant boxing rules? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nInteger a = 127;\nInteger b = 127;\nSystem.out.print(a == b);\n```",
+              "correct_option": "Prints: true",
+              "distractors": [
+                "Prints: false",
+                "Either true or false, depending on the JVM cache size.",
+                "Compilation fails: == cannot compare Integer references."
+              ],
+              "explanation": "Boxing the constant int value 127 falls in the required identity-sharing range -128 through 127. Both references therefore compare equal here. false and cache-dependent answers ignore this specific guarantee; == is legal on two Integer references. Do not extend this guarantee to arbitrary larger values, and prefer value equality for business comparisons.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-5.html#jls-5.1.7",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "Integer a = 127;\nInteger b = 127;\nSystem.out.print(a == b);",
+                "kind": "output",
+                "expected": "true"
+              }
+            },
+            {
+              "key": "different-wrapper-values",
+              "question": "Java 27, no preview features. Two numeric wrapper types hold equal magnitudes. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nInteger units = 1;\nLong total = 1L;\nSystem.out.print(units.equals(total) + \" \" + (units.longValue() == total.longValue()));\n```",
+              "correct_option": "Prints: false true",
+              "distractors": [
+                "Prints: true true",
+                "Prints: false false",
+                "Throws ClassCastException."
+              ],
+              "explanation": "Integer.equals requires another Integer with the same int value; a Long does not qualify, so the first result is false. The explicit longValue calls produce equal primitive long values, so the second is true. Numeric magnitude alone does not make different wrapper classes equal; these calls do not cast one wrapper to the other or throw.",
+              "source": "https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/lang/Integer.html#equals(java.lang.Object)",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "Integer units = 1;\nLong total = 1L;\nSystem.out.print(units.equals(total) + \" \" + (units.longValue() == total.longValue()));",
+                "kind": "output",
+                "expected": "false true"
+              }
+            },
+            {
+              "key": "ternary-null-unboxing",
+              "question": "Java 27, no preview features. A nullable wrapper is used in a numeric conditional expression. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nInteger missing = null;\nboolean useMissing = true;\nInteger chosen = useMissing ? missing : 0;\nSystem.out.print(chosen);\n```",
+              "correct_option": "Throws NullPointerException.",
+              "distractors": [
+                "Prints: null",
+                "Prints: 0",
+                "Compilation fails: conditional branches must have identical types."
+              ],
+              "explanation": "The Integer/int numeric conditional has primitive int type, so the selected missing operand is unboxed. It is null, causing NullPointerException before assignment can box the result. The target Integer does not force reference semantics, the unselected zero is not used, and these different branch types are statically compatible.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.25",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "Integer missing = null;\nboolean useMissing = true;\nInteger chosen = useMissing ? missing : 0;\nSystem.out.print(chosen);",
+                "kind": "runtime_exception",
+                "expected": "NullPointerException"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "primitive-comparison",
+            "null-unboxing",
+            "reference-equality"
+          ]
+        },
+        {
+          "key": "evaluation",
+          "title": "Evaluation order and short-circuit operators",
+          "objective": "Predict left-to-right side effects, skipped boolean operands and string concatenation.",
+          "cards": [
+            {
+              "key": "eager-boolean-and",
+              "question": "Java 27, no preview features. A Boolean expression uses & rather than &&. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint checks = 0;\nboolean allowed = false & (++checks > 0);\nSystem.out.print(checks + \" \" + allowed);\n```",
+              "correct_option": "Prints: 1 false",
+              "distractors": [
+                "Prints: 0 false",
+                "Prints: 1 true",
+                "Compilation fails: & only accepts integral operands."
+              ],
+              "explanation": "With Boolean operands, & computes eager logical AND: both operands are evaluated. checks increments to one, but false AND true is false. The zero-count option incorrectly gives && short-circuit behavior; true ignores the false operand. & also supports Boolean operands, so compilation succeeds.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.22.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int checks = 0;\nboolean allowed = false & (++checks > 0);\nSystem.out.print(checks + \" \" + allowed);",
+                "kind": "output",
+                "expected": "1 false"
+              }
+            },
+            {
+              "key": "boolean-xor",
+              "question": "Java 27, no preview features. Two mutually exclusive flags are combined. What is printed? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nboolean local = true;\nboolean remote = true;\nSystem.out.print((local ^ remote) + \" \" + (local | remote));\n```",
+              "correct_option": "Prints: false true",
+              "distractors": [
+                "Prints: true true",
+                "Prints: false false",
+                "Compilation fails: ^ is not defined for boolean."
+              ],
+              "explanation": "Boolean XOR is true only when its operands differ, so two true operands yield false. Boolean inclusive OR is true when either operand is true, yielding true here. Treating XOR as inclusive OR or treating OR as XOR gives the wrong pair; ^ is legal for Boolean operands.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.22.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "boolean local = true;\nboolean remote = true;\nSystem.out.print((local ^ remote) + \" \" + (local | remote));",
+                "kind": "output",
+                "expected": "false true"
+              }
+            },
+            {
+              "key": "conditional-only-selected-branch",
+              "question": "Java 27, no preview features. A fallback expression would divide by zero. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint divisor = 0;\nboolean useCache = true;\nint result = useCache ? 8 : 8 / divisor;\nSystem.out.print(result);\n```",
+              "correct_option": "Prints: 8",
+              "distractors": [
+                "Throws ArithmeticException.",
+                "Prints: 0",
+                "Compilation fails: both branches must be safe to execute."
+              ],
+              "explanation": "Only the chosen second or third operand of ?: is evaluated. useCache is true, so the literal 8 is used and the division never executes. A dangerous unselected runtime expression does not make this conditional fail compilation; zero is not substituted and no arithmetic exception occurs on this path.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.25",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int divisor = 0;\nboolean useCache = true;\nint result = useCache ? 8 : 8 / divisor;\nSystem.out.print(result);",
+                "kind": "output",
+                "expected": "8"
+              }
+            },
+            {
+              "key": "compound-left-once",
+              "question": "Java 27, no preview features. An array index has a side effect in a compound assignment. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint[] values = {10, 20};\nint index = 0;\nvalues[index++] += 5;\nSystem.out.print(index + \" \" + values[0] + \" \" + values[1]);\n```",
+              "correct_option": "Prints: 1 15 20",
+              "distractors": [
+                "Prints: 2 15 20",
+                "Prints: 1 10 25",
+                "Throws ArrayIndexOutOfBoundsException."
+              ],
+              "explanation": "The compound-assignment left side is evaluated once. Post-increment selects index zero and then advances index to one; that selected element is updated to 15. Naively duplicating the left expression would increment twice, but that is not the specified behavior. Element one stays 20, and the valid selected index does not throw.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.26.2",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int[] values = {10, 20};\nint index = 0;\nvalues[index++] += 5;\nSystem.out.print(index + \" \" + values[0] + \" \" + values[1]);",
+                "kind": "output",
+                "expected": "1 15 20"
+              }
+            }
+          ],
+          "identity_card_keys": [
+            "increment-order",
+            "short-circuit",
+            "concatenation-order"
+          ]
+        },
+        {
+          "key": "bits-shifts",
+          "title": "Bit masks and shift operators",
+          "objective": "Apply integral bit masks, signed and unsigned shifts, and masked shift distances.",
+          "cards": [
+            {
+              "key": "signed-versus-unsigned-shift",
+              "question": "Java 27, no preview features. A signed bit pattern is shifted in two ways. What is printed? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint flags = -8;\nSystem.out.print((flags >> 1) + \" \" + (flags >>> 1));\n```",
+              "correct_option": "Prints: -4 2147483644",
+              "distractors": [
+                "Prints: -4 -4",
+                "Prints: 2147483644 2147483644",
+                "Compilation fails: >>> cannot operate on negative values."
+              ],
+              "explanation": ">> sign-extends a negative int, producing -4. >>> inserts zero bits on the left, producing 2147483644. The first wrong pair treats both as signed; the second treats both as unsigned. Both operations are legal on negative values; unsigned shift describes filling bits, not an unsigned operand type.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.19",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int flags = -8;\nSystem.out.print((flags >> 1) + \" \" + (flags >>> 1));",
+                "kind": "output",
+                "expected": "-4 2147483644"
+              }
+            },
+            {
+              "key": "masked-int-shift-distance",
+              "question": "Java 27, no preview features. A bit position equals the int width. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nSystem.out.print((1 << 32) + \" \" + (1L << 32));\n```",
+              "correct_option": "Prints: 1 4294967296",
+              "distractors": [
+                "Prints: 0 4294967296",
+                "Prints: 4294967296 4294967296",
+                "Throws ArithmeticException."
+              ],
+              "explanation": "For an int left operand, only the low five bits of the distance are used, so 32 becomes zero. For long, six bits are used, so shifting 1L by 32 produces 4294967296. Java does not produce zero for an int distance of 32, widen the left operand based on the distance, or throw for this shift.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.19",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "System.out.print((1 << 32) + \" \" + (1L << 32));",
+                "kind": "output",
+                "expected": "1 4294967296"
+              }
+            },
+            {
+              "key": "byte-shift-promotes",
+              "question": "Java 27, no preview features. A byte flag is shifted without casting the result back. What is printed? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nbyte flags = -1;\nSystem.out.print(flags >>> 1);\n```",
+              "correct_option": "Prints: 2147483647",
+              "distractors": [
+                "Prints: 127",
+                "Prints: -1",
+                "Compilation fails: a byte cannot be shifted."
+              ],
+              "explanation": "Unary numeric promotion converts the byte to int before the shift, sign-extending -1 to 32 one bits. Unsigned right shift then gives Integer.MAX_VALUE. 127 assumes an eight-bit shift, -1 assumes sign extension from >>, and the compile-error option ignores legal promotion. Mask with 0xff first when interpreting a byte as unsigned data.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.19",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "byte flags = -1;\nSystem.out.print(flags >>> 1);",
+                "kind": "output",
+                "expected": "2147483647"
+              }
+            },
+            {
+              "key": "clear-one-mask-bit",
+              "question": "Java 27, no preview features. A bitmask must clear only the write flag. What happens? The following is inside a standard main method; args is its String[] parameter.\n\n```java\nint permissions = 0b111;\nint WRITE = 0b010;\npermissions &= ~WRITE;\nSystem.out.print(permissions);\n```",
+              "correct_option": "Prints: 5",
+              "distractors": [
+                "Prints: 2",
+                "Prints: 7",
+                "Prints: -3"
+              ],
+              "explanation": "~WRITE complements every bit; AND with the original permissions clears the WRITE bit while retaining the other set bits, yielding 0b101, or 5. AND with WRITE alone would yield 2, OR would leave 7, and -3 is the complemented mask itself rather than the masked permissions.",
+              "source": "https://docs.oracle.com/javase/specs/jls/se27/html/jls-15.html#jls-15.22.1",
+              "card_type": "multiple_choice",
+              "is_code": true,
+              "verification": {
+                "code": "int permissions = 0b111;\nint WRITE = 0b010;\npermissions &= ~WRITE;\nSystem.out.print(permissions);",
+                "kind": "output",
+                "expected": "5"
+              }
+            }
+          ],
+          "identity_card_keys": []
+        }
+      ]
+    }
+  ]
+}

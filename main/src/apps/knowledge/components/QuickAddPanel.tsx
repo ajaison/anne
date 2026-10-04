@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, ChevronDown } from 'lucide-react';
-import { createCard } from '../services/supabase';
+import { bulkCreateCards } from '../services/supabase';
+import { parseCardImport } from '../services/cardImport';
+import ChoiceAuthoringFields from './ChoiceAuthoringFields';
 import type { StudyMode } from '../types';
 
 interface QuickAddPanelProps {
@@ -26,6 +28,10 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
   const [saving, setSaving] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
   const [showModeDropdown, setShowModeDropdown] = useState(false);
+  const [distractors, setDistractors] = useState(['', '', '']);
+  const [explanation, setExplanation] = useState('');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const saveLock = useRef(false);
 
   const questionRef = useRef<HTMLTextAreaElement>(null);
 
@@ -38,7 +44,6 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
   useEffect(() => {
     if (answer.includes('```') || answer.includes('  ') || /[{};()]/.test(answer)) {
       setIsCode(true);
-      if (cardType === 'classic') setCardType('multiple_choice');
     }
   }, [answer]);
 
@@ -48,18 +53,30 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
     setQuestion('');
     setAnswer('');
     setIsCode(false);
+    setDistractors(['', '', '']);
+    setExplanation('');
     questionRef.current?.focus();
   };
 
   const handleSave = async () => {
-    if (!question.trim() || !answer.trim()) return;
+    if (!question.trim() || !answer.trim() || saveLock.current) return;
+    saveLock.current = true;
     setSaving(true);
+    setSaveError(null);
     try {
-      await createCard(deckId, question.trim(), answer.trim(), undefined, isCode, cardType);
+      const content = parseCardImport(JSON.stringify([{
+        question, card_type: cardType, is_code: isCode,
+        ...(cardType === 'multiple_choice' ? { correct_option: answer, explanation, distractors } : { answer }),
+      }]), deckId);
+      const { error } = await bulkCreateCards(content);
+      if (error) throw new Error(error.message);
       setSavedCount(prev => prev + 1);
       onCardAdded();
       resetForm();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Unable to save the card.');
     } finally {
+      saveLock.current = false;
       setSaving(false);
     }
   };
@@ -69,7 +86,7 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
       e.preventDefault();
       handleSave();
     }
-    if (e.key === 'Escape') onClose();
+    if (e.key === 'Escape' && !saveLock.current) onClose();
   };
 
   return (
@@ -79,7 +96,7 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        onClick={(e) => { if (e.target === e.currentTarget && !saveLock.current) onClose(); }}
       >
         <motion.div
           className="qa-panel"
@@ -98,7 +115,7 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
                 <p className="qa-subtitle">{deckName} · {savedCount} added this session</p>
               </div>
             </div>
-            <button className="qa-close" onClick={onClose}><X size={20} /></button>
+            <button className="qa-close" onClick={onClose} disabled={saving}><X size={20} /></button>
           </div>
 
           {/* Mode Selector */}
@@ -108,6 +125,7 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
               <button
                 className="qa-mode-btn"
                 onClick={() => setShowModeDropdown(!showModeDropdown)}
+                disabled={saving}
               >
                 <span>{selectedMode.label}</span>
                 <ChevronDown size={16} className={showModeDropdown ? 'rotate-180' : ''} />
@@ -145,13 +163,14 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
               placeholder="What does the volatile keyword do?"
               value={question}
               onChange={e => setQuestion(e.target.value)}
+              disabled={saving}
               rows={3}
             />
           </div>
 
           {/* Answer */}
           <div className="qa-section">
-            <label className="qa-label">Answer {isCode && <span className="qa-code-badge">☕ Java detected</span>}</label>
+            <label className="qa-label">{cardType === 'multiple_choice' ? 'Correct answer option' : 'Answer'} {isCode && <span className="qa-code-badge">☕ Java detected</span>}</label>
             <textarea
               className={`qa-textarea qa-textarea--answer ${isCode ? 'qa-textarea--code' : ''}`}
               placeholder={isCode
@@ -160,9 +179,16 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
               }
               value={answer}
               onChange={e => setAnswer(e.target.value)}
+              disabled={saving}
               rows={5}
             />
           </div>
+
+          {cardType === 'multiple_choice' && (
+            <ChoiceAuthoringFields distractors={distractors} explanation={explanation}
+              onDistractors={setDistractors} onExplanation={setExplanation} disabled={saving} />
+          )}
+          {saveError && <p className="card-import-error" role="alert">{saveError}</p>}
 
           {/* Code toggle */}
           <label className="qa-code-toggle">
@@ -180,7 +206,7 @@ const QuickAddPanel: React.FC<QuickAddPanelProps> = ({ deckId, deckName, onClose
               <kbd>⌘</kbd>+<kbd>↵</kbd> to save & continue
             </div>
             <div className="qa-action-btns">
-              <button className="qa-btn-cancel" onClick={onClose}>Done</button>
+              <button className="qa-btn-cancel" onClick={onClose} disabled={saving}>Done</button>
               <button
                 className="qa-btn-save"
                 onClick={handleSave}

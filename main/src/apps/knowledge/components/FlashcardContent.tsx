@@ -30,7 +30,7 @@ const CopyableCodeBlock = ({ code, language }: { code: string; language: string 
         </button>
       </div>
       <SyntaxHighlighter
-        style={vscDarkPlus as any}
+        style={vscDarkPlus}
         language={language}
         PreTag="div"
         showLineNumbers={true}
@@ -59,11 +59,12 @@ export const FlashcardContent: React.FC<FlashcardContentProps> = ({ content, for
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
-        code({ node, inline, className, children, ...props }: any) {
+        code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className || '');
           const language = match ? match[1] : 'java';
-          const codeString = String(children).replace(/\n$/, '');
-          const isBlock = !inline || codeString.includes('\n');
+          const rawCode = String(children);
+          const codeString = rawCode.replace(/\n$/, '');
+          const isBlock = !!match || rawCode.includes('\n');
 
           return isBlock ? (
             <CopyableCodeBlock code={codeString} language={language} />
@@ -79,4 +80,3 @@ export const FlashcardContent: React.FC<FlashcardContentProps> = ({ content, for
     </ReactMarkdown>
   );
 };
-

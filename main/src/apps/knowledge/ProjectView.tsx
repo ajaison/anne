@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Book, Loader } from 'lucide-react';
 import { fetchDecksByProject, createDeck, supabase } from './services/supabase';
 import type { Deck, Project } from './types';
+import { pathwayForProject } from './curricula/pathways';
 import './KnowledgeApp.css';
 
 const ProjectView = () => {
@@ -16,6 +17,7 @@ const ProjectView = () => {
     
     const [deckName, setDeckName] = useState('');
     const [deckDesc, setDeckDesc] = useState('');
+    const pathway = project ? pathwayForProject(project.name) : undefined;
 
     useEffect(() => {
         if (projectId) {
@@ -58,6 +60,7 @@ const ProjectView = () => {
                 </button>
                 <div className="header-bottom">
                     <h1>{project?.name || 'Loading Project...'}</h1>
+                    {pathway && <button className="study-btn" onClick={() => navigate(`/knowledge/project/${projectId}/pathway/${pathway.id}`)}>Open pathway</button>}
                     <button className="add-project-btn" onClick={() => setIsCreating(true)}>
                         <Plus size={20} /> New Deck
                     </button>
@@ -72,7 +75,7 @@ const ProjectView = () => {
                         <form onSubmit={handleCreateDeck}>
                             <input 
                                 type="text" 
-                                placeholder="Deck Name (e.g., Java, React)" 
+                                placeholder="Topic name (e.g., Collections, Streams)"
                                 value={deckName}
                                 onChange={(e) => setDeckName(e.target.value)}
                                 autoFocus

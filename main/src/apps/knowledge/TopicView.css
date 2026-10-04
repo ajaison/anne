@@ -1,0 +1,17 @@
+.topic-content { display: flex; flex-direction: column; gap: 20px; }
+.topic-concepts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: 20px; }
+.topic-concept { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.topic-concept h2 { margin-bottom: 10px; }
+.topic-evidence { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+.topic-evidence dt { font-size: .85rem; opacity: .7; }
+.topic-evidence dd { margin: 5px 0 0; }
+.topic-question { padding: 20px 0; border-top: 1px solid var(--glass-border, #7775); min-width: 0; }
+.topic-question select { margin-top: 8px; min-height: 44px; }
+.topic-error { color: var(--error, #ef4444); }
+.topic-links { overflow-wrap: anywhere; }
+.topic-content a { text-decoration: none; }
+.topic-concept > .back-button { margin-bottom: 12px; }
+.concept-history { padding-left: 22px; }
+.concept-history li { padding: 14px 0; border-bottom: 1px solid #7773; }
+.concept-history time, .concept-history span { display: block; margin: 5px 0; }
+@media (max-width: 480px) { .topic-evidence { grid-template-columns: 1fr; } }

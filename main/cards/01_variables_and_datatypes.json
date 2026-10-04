@@ -115,7 +115,7 @@
   {
     "question": "Fill in the blank to declare an explicit long literal for the value 3 billion (exceeding standard signed 32-bit int bounds):\n```java\nlong distance = 3000000000___;\n```",
     "answer": "L",
-    "card_type": "fill_in_the_blank",
+    "card_type": "fill_blank",
     "distractors": [],
     "is_code": true
   },

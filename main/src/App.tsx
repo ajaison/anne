@@ -4,6 +4,9 @@ import BirthdayApp from './apps/birthday/BirthdayApp';
 import KnowledgeApp from './apps/knowledge/KnowledgeApp';
 import ProjectView from './apps/knowledge/ProjectView';
 import DeckView from './apps/knowledge/DeckView';
+import TopicView from './apps/knowledge/TopicView';
+import PathwayView from './apps/knowledge/PathwayView';
+import ConceptView from './apps/knowledge/ConceptView';
 import StudySession from './apps/knowledge/StudySession';
 import StatsView from './apps/knowledge/StatsView';
 
@@ -16,7 +19,10 @@ const App = () => {
         {/* Knowledge App Routes */}
         <Route path="/knowledge" element={<KnowledgeApp />} />
         <Route path="/knowledge/project/:projectId" element={<ProjectView />} />
+        <Route path="/knowledge/project/:projectId/pathway/:pathwayId" element={<PathwayView />} />
         <Route path="/knowledge/deck/:deckId" element={<DeckView />} />
+        <Route path="/knowledge/deck/:deckId/concepts" element={<TopicView />} />
+        <Route path="/knowledge/deck/:deckId/concept/:conceptId" element={<ConceptView />} />
         <Route path="/knowledge/study/:deckId" element={<StudySession />} />
         <Route path="/knowledge/stats" element={<StatsView />} />
         <Route path="/birthday/*" element={<BirthdayApp />} />

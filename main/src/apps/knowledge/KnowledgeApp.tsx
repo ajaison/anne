@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Folder, Search, Loader, Trash2 } from 'lucide-react';
 import { fetchProjects, createProject, deleteProject } from './services/supabase';
 import type { Project } from './types';
+import { pathwayForProject } from './curricula/pathways';
 import './KnowledgeApp.css';
 
 const KnowledgeApp = () => {
@@ -132,7 +133,10 @@ const KnowledgeApp = () => {
                             <div 
                                 key={project.id} 
                                 className="project-card"
-                                onClick={() => navigate(`/knowledge/project/${project.id}`)}
+                                onClick={() => {
+                                    const pathway = pathwayForProject(project.name);
+                                    navigate(`/knowledge/project/${project.id}${pathway ? `/pathway/${pathway.id}` : ''}`);
+                                }}
                             >
                                 <Folder className="project-icon" size={24} />
                                 <div className="project-info">
@@ -140,6 +144,7 @@ const KnowledgeApp = () => {
                                     <p>{project.description || "No description provided."}</p>
                                 </div>
                                 <div className="card-footer">
+                                    {pathwayForProject(project.name) && <span className="deck-tag">Learning pathway</span>}
                                     <span className="date-badge">Created {new Date(project.created_at).toLocaleDateString()}</span>
                                     <button 
                                         className="delete-card-btn" 

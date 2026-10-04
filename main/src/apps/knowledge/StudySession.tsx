@@ -1,37 +1,36 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Loader, Flame, Zap, ChevronLeft } from 'lucide-react';
-import { updateCardStats, supabase } from './services/supabase';
+import { supabase } from './services/supabase';
 import { syncService } from './services/sync';
 import { db } from './services/db';
+import { resolveStudyMode } from './services/studyModes';
+import { makeReviewSaver } from './services/reviewPersistence';
+import type { ReviewAttempt } from './services/reviewSaver';
+import { reviewIntervalLabel, scheduleReview } from './services/scheduler';
+import { cardsForConcept } from './services/conceptEvidence';
+import { choiceProblem } from './services/multipleChoice';
+import { loadTopicCards } from './services/concepts';
+import { conceptUrl, topicUrl } from './curricula/pathways';
 import { FlashcardContent } from './components/FlashcardContent';
 import MultipleChoiceCard from './components/MultipleChoiceCard';
 import FillBlankCard from './components/FillBlankCard';
 import TypeAnswerCard from './components/TypeAnswerCard';
 import SessionSummary from './components/SessionSummary';
-import type { Card, Deck, StudyMode, SessionCardResult, SessionResult } from './types';
+import type { Card, Deck, StudyMode, ReviewRating, SessionCardResult, SessionResult } from './types';
 import './KnowledgeApp.css';
 
-/** Choose the best mode for a card. Respects explicit card_type, otherwise picks based on content. */
-const resolveMode = (card: Card, sessionIndex: number): StudyMode => {
-  if (card.card_type && card.card_type !== 'classic') return card.card_type;
-
-  // Cycle through modes for variety: multiple_choice → fill_blank → type_answer → classic
-  if (card.is_code) {
-    const codeModes: StudyMode[] = ['multiple_choice', 'fill_blank', 'multiple_choice', 'fill_blank'];
-    return codeModes[sessionIndex % codeModes.length];
-  }
-  const modes: StudyMode[] = ['multiple_choice', 'type_answer', 'multiple_choice', 'classic'];
-  return modes[sessionIndex % modes.length];
-};
-
-const XP_CORRECT_FIRST = 15;
-const XP_CORRECT = 10;
+const RATINGS: ReviewRating[] = ['again', 'hard', 'good', 'easy'];
 
 const StudySession = () => {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const conceptId = searchParams.get('conceptId');
+  const backPath = conceptId ? (searchParams.get('returnToConcept') === '1'
+    ? conceptUrl(deckId!, conceptId, searchParams.get('pathway'))
+    : topicUrl(deckId!, searchParams.get('pathway'))) : `/knowledge/deck/${deckId}`;
 
   const [deck, setDeck] = useState<Deck | null>(null);
   const [cards, setCards] = useState<Card[]>([]);
@@ -46,143 +45,164 @@ const StudySession = () => {
   const [bestStreak, setBestStreak] = useState(0);
   const [xpFlash, setXpFlash] = useState<number | null>(null);
   const [cardResults, setCardResults] = useState<SessionCardResult[]>([]);
-  const [firstAttempt, setFirstAttempt] = useState(true); // Track if current card is first attempt
+  const [skippedIds, setSkippedIds] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [pendingReview, setPendingReview] = useState<ReviewAttempt | undefined>();
+  const [online, setOnline] = useState(navigator.onLine);
+  const [sessionRun, setSessionRun] = useState(0);
+  const saverRef = useRef<ReturnType<typeof makeReviewSaver> | null>(null);
 
   useEffect(() => {
-    if (deckId) loadSession();
-  }, [deckId]);
+    const updateOnline = () => setOnline(navigator.onLine);
+    window.addEventListener('online', updateOnline);
+    window.addEventListener('offline', updateOnline);
+    return () => {
+      window.removeEventListener('online', updateOnline);
+      window.removeEventListener('offline', updateOnline);
+    };
+  }, []);
 
-  const loadSession = async () => {
-    if (!deckId) return;
-    setLoading(true);
-    try {
-      const { data: deckData } = await supabase.from('decks').select('*').eq('id', deckId).single();
-      setDeck(deckData);
-
-      const cardData = await syncService.getCards(deckId);
-      if (cardData) {
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!deckId) return;
+      setLoading(true);
+      setLoadError(null);
+      setSaveError(null);
+      setPendingReview(undefined);
+      setCurrentIndex(0);
+      setShowAnswer(false);
+      setFinished(false);
+      setCardResults([]);
+      setSkippedIds([]);
+      setXp(0);
+      setStreak(0);
+      setBestStreak(0);
+      setXpFlash(null);
+      try {
+        const saver = makeReviewSaver(deckId);
+        saverRef.current = saver;
+        const pending = saver.getPending();
+        if (conceptId) {
+          if (!navigator.onLine) throw new Error('Reconnect to load concept practice. Downloaded deck study remains available.');
+          const { data, error } = await supabase.from('concepts').select('id')
+            .eq('id', conceptId).eq('deck_id', deckId).single();
+          if (error || !data) throw new Error('This concept could not be loaded in this deck. Return to the topic and try again.');
+        }
+        const getDeck = async () => {
+          if (navigator.onLine) {
+            const { data } = await supabase.from('decks').select('*').eq('id', deckId).single();
+            if (data) return data as Deck;
+          }
+          return await db.decks.get(deckId) ?? null;
+        };
+        const [deckData, allCards] = await Promise.all([getDeck(), conceptId
+          ? loadTopicCards(deckId, conceptId) : syncService.getCards(deckId)]);
+        const cardData = cardsForConcept(allCards, conceptId).filter(card => !conceptId ||
+          (card.card_type === 'multiple_choice' && !choiceProblem(card.answer, card.distractors)));
+        if (cancelled) return;
+        setDeck(deckData);
         const now = new Date();
-        const dueCards = cardData.filter(c => new Date(c.next_review) <= now && c.repetitions > 0);
-        const newCards = cardData.filter(c => c.repetitions === 0);
-        dueCards.sort((a, b) => new Date(a.next_review).getTime() - new Date(b.next_review).getTime());
-        newCards.sort(() => Math.random() - 0.5);
-
-        let sessionCards = [...dueCards, ...newCards];
-        if (sessionCards.length === 0 && cardData.length > 0) {
-          sessionCards = [...cardData].sort((a, b) => {
-            if (a.interval !== b.interval) return a.interval - b.interval;
-            return a.ease_factor - b.ease_factor;
-          });
+        const due = cardData.filter(c => new Date(c.next_review) <= now && c.repetitions > 0)
+          .sort((a, b) => Date.parse(a.next_review) - Date.parse(b.next_review));
+        const unseen = cardData.filter(c => c.repetitions === 0).sort(() => Math.random() - 0.5);
+        let sessionCards = [...due, ...unseen];
+        if (!sessionCards.length && cardData.length) {
+          sessionCards = [...cardData].sort((a, b) => a.interval - b.interval || a.ease_factor - b.ease_factor);
+        }
+        if (pending) {
+          sessionCards = [pending.card, ...sessionCards.filter(c => c.id !== pending.card.id)];
+          setPendingReview(pending);
+          setSaveError(conceptId && pending.card.concept_id !== conceptId
+            ? 'An unfinished review from this deck was restored. Retry to save that original result before practising this concept.'
+            : 'An unfinished review was restored. Retry to finish saving your original result.');
         }
         setCards(sessionCards);
+      } catch (error) {
+        if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Unable to load this session.');
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to load session:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    void load();
+    return () => { cancelled = true; };
+  }, [deckId, conceptId, sessionRun]);
 
   const activeCard = cards[currentIndex];
-  const currentMode: StudyMode = activeCard ? resolveMode(activeCard, currentIndex) : 'classic';
-  const progress = cards.length > 0 ? (currentIndex / cards.length) * 100 : 0;
+  const currentMode: StudyMode = resolveStudyMode(activeCard?.card_type);
+  const recordedResult = cardResults.find(result => result.card.id === activeCard?.id);
+  const displayedResult = recordedResult ?? pendingReview?.result;
+  const wasSkipped = skippedIds.includes(activeCard?.id);
+  const progress = cards.length > 0 ? ((cardResults.length + skippedIds.length) / cards.length) * 100 : 0;
 
   const advanceCard = () => {
     setShowAnswer(false);
-    setFirstAttempt(true);
-    if (currentIndex < cards.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      setFinished(true);
-    }
+    if (currentIndex < cards.length - 1) setCurrentIndex(currentIndex + 1);
+    else setFinished(true);
+  };
+
+  const skipUnpreparedCard = () => {
+    if (saverRef.current?.isBusy() || saverRef.current?.getPending()) return;
+    setSkippedIds(previous => previous.includes(activeCard.id) ? previous : [...previous, activeCard.id]);
+    advanceCard();
   };
 
   const prevCard = () => {
-    if (currentIndex > 0) {
+    if (currentIndex > 0 && !saverRef.current?.getPending()) {
       setShowAnswer(false);
-      setFirstAttempt(false);
-      setCurrentIndex(prev => prev - 1);
+      setCurrentIndex(currentIndex - 1);
     }
   };
 
-  const triggerXpFlash = (amount: number) => {
-    setXp(prev => prev + amount);
-    setXpFlash(amount);
-    setTimeout(() => setXpFlash(null), 1000);
-  };
-
-  /** Called by interactive modes (MC, FillBlank, TypeAnswer) with a boolean result */
-  const handleInteractiveResult = async (correct: boolean) => {
-    const earned = correct && firstAttempt ? XP_CORRECT_FIRST : correct ? XP_CORRECT : 0;
-    if (earned > 0) triggerXpFlash(earned);
-
-    const newStreak = correct ? streak + 1 : 0;
-    setStreak(newStreak);
-    if (newStreak > bestStreak) setBestStreak(newStreak);
-
-    // Map result to SRS rating
-    const rating = correct && firstAttempt ? 'good' : correct ? 'hard' : 'again';
-    await applySRS(rating);
-
-    setCardResults(prev => [...prev, {
-      card: activeCard,
-      correct: correct && firstAttempt,
-      attempts: firstAttempt ? 1 : 2,
-      mode: currentMode,
-    }]);
-
-    advanceCard();
-  };
-
-  /** Called by classic mode's manual rating buttons */
-  const handleRating = async (rating: 'again' | 'hard' | 'good' | 'easy') => {
-    const correct = rating === 'good' || rating === 'easy';
-    const earned = correct ? XP_CORRECT : 0;
-    if (earned > 0) triggerXpFlash(earned);
-
-    const newStreak = correct ? streak + 1 : 0;
-    setStreak(newStreak);
-    if (newStreak > bestStreak) setBestStreak(newStreak);
-
-    await applySRS(rating);
-
-    setCardResults(prev => [...prev, {
-      card: activeCard,
-      correct,
-      attempts: 1,
-      mode: 'classic',
-    }]);
-
-    advanceCard();
-  };
-
-  const applySRS = async (rating: 'again' | 'hard' | 'good' | 'easy') => {
-    let { interval, ease_factor, repetitions } = activeCard;
-    if (rating === 'again') {
-      repetitions = 0; interval = 0;
-    } else {
-      repetitions += 1;
-      if (repetitions === 1) interval = 1;
-      else if (repetitions === 2) interval = 6;
-      else interval = Math.round(interval * ease_factor);
-      if (rating === 'easy') ease_factor += 0.15;
-      if (rating === 'hard') ease_factor -= 0.15;
-      if (ease_factor < 1.3) ease_factor = 1.3;
+  const submitReview = async (card: Card, rating: ReviewRating, result: SessionCardResult) => {
+    const saver = saverRef.current;
+    if (!saver || saver.isBusy()) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const saved = await saver.submit(card, rating, result);
+      if (!saved || saverRef.current !== saver) return;
+      const updatedCard = { ...saved.card, ...saved.stats };
+      setCards(previous => previous.map(c => c.id === updatedCard.id ? updatedCard : c));
+      setCardResults(previous => [...previous, { ...saved.result, card: updatedCard }]);
+      const earned = saved.result.correct ? (saved.result.mode === 'classic' ? 10 : 15) : 0;
+      if (earned) {
+        setXp(previous => previous + earned);
+        setXpFlash(earned);
+        setTimeout(() => setXpFlash(null), 1000);
+      }
+      const nextStreak = saved.result.correct ? streak + 1 : 0;
+      setStreak(nextStreak);
+      setBestStreak(previous => Math.max(previous, nextStreak));
+      setPendingReview(undefined);
+      advanceCard();
+    } catch (error) {
+      if (saverRef.current !== saver) return;
+      setPendingReview(saver.getPending());
+      setSaveError(error instanceof Error ? error.message : 'Review could not be saved. Retry to finish.');
+    } finally {
+      if (saverRef.current === saver) setSaving(false);
     }
-    const nextReview = new Date();
-    nextReview.setDate(nextReview.getDate() + (interval || 1));
-    const updatedStats = { interval, ease_factor, repetitions, next_review: nextReview.toISOString() };
-
-    if (navigator.onLine) {
-      await updateCardStats(activeCard.id, updatedStats);
-      await supabase.from('review_history').insert({ card_id: activeCard.id, rating });
-    }
-    await db.cards.update(activeCard.id, updatedStats);
   };
+
+  const handleInteractiveResult = (correct: boolean) => {
+    const rating = correct ? 'good' : 'again';
+    return submitReview(activeCard, rating, {
+      card: activeCard, correct, attempts: 1, mode: currentMode, rating,
+    });
+  };
+
+  const handleRating = (rating: ReviewRating) => submitReview(activeCard, rating, {
+    card: activeCard, correct: rating === 'good' || rating === 'easy',
+    attempts: 1, mode: 'classic', rating,
+  });
 
   // --- Session Result ---
   const sessionResult: SessionResult = {
-    totalCards: cards.length,
+    totalCards: cardResults.length,
+    skippedCards: skippedIds.length,
     correctFirst: cardResults.filter(r => r.correct).length,
     xpEarned: xp,
     bestStreak,
@@ -203,25 +223,27 @@ const StudySession = () => {
       result={sessionResult}
       deckName={deck?.name || 'Deck'}
       onStudyAgain={() => {
-        setFinished(false);
-        setCurrentIndex(0);
-        setShowAnswer(false);
-        setXp(0);
-        setStreak(0);
-        setBestStreak(0);
-        setCardResults([]);
-        setFirstAttempt(true);
-        loadSession();
+        setSessionRun(previous => previous + 1);
       }}
-      onBackToDeck={() => navigate(`/knowledge/deck/${deckId}`)}
+      onBackToDeck={() => navigate(backPath)}
     />
+  );
+
+  if (loadError) return (
+    <div className="study-container empty">
+      <p role="alert">{loadError}</p>
+      <button className="primary-btn" onClick={() => setSessionRun(previous => previous + 1)}>Retry loading</button>
+      <button className="close-btn" disabled={saving} onClick={() => {
+              if (!saverRef.current?.isBusy()) navigate(backPath);
+            }}>Back to Deck</button>
+    </div>
   );
 
   // --- EMPTY ---
   if (cards.length === 0) return (
     <div className="study-container empty">
       <h2>No cards found. Add some knowledge first!</h2>
-      <button className="primary-btn" onClick={() => navigate(`/knowledge/deck/${deckId}`)}>Back to Deck</button>
+      <button className="primary-btn" onClick={() => navigate(backPath)}>Back to Deck</button>
     </div>
   );
 
@@ -231,11 +253,13 @@ const StudySession = () => {
       <header className="study-header">
         <div className="study-header-row">
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button className="close-btn" onClick={() => navigate(`/knowledge/deck/${deckId}`)}>
+            <button className="close-btn" disabled={saving} onClick={() => {
+              if (!saverRef.current?.isBusy()) navigate(backPath);
+            }}>
               <ArrowLeft size={20} /> Stop
             </button>
             {currentIndex > 0 && (
-              <button className="close-btn" onClick={prevCard} title="Go back to previous card">
+              <button className="close-btn" disabled={saving || !!pendingReview} onClick={prevCard} title="Go back to previous card">
                 <ChevronLeft size={20} /> Prev
               </button>
             )}
@@ -289,7 +313,24 @@ const StudySession = () => {
         {currentMode === 'classic' && '🃏 Classic'}
       </div>
 
-      <main className="study-main">
+      {!online && (
+        <p className="study-save-notice" role="status">
+          You are offline. You can read downloaded content; reconnect to save reviews.
+          Offline review syncing is not available yet.
+        </p>
+      )}
+      {saving && <p className="study-save-notice" role="status">Saving review…</p>}
+      {saveError && (
+        <div className="study-save-notice study-save-error" role="alert">
+          <p>{saveError}</p>
+          {pendingReview && (
+            <button className="primary-btn" disabled={saving} onClick={() =>
+              submitReview(pendingReview.card, pendingReview.rating, pendingReview.result)
+            }>Retry saving review</button>
+          )}
+        </div>
+      )}
+      <main className="study-main" aria-busy={saving}>
         <AnimatePresence mode="wait">
           <motion.div
             key={`${activeCard.id}-${currentMode}`}
@@ -299,13 +340,42 @@ const StudySession = () => {
             transition={{ duration: 0.35 }}
             className="study-card-wrapper"
           >
+            {wasSkipped ? (
+              <div className="flashcard flashcard--interactive saved-review">
+                <p>Skipped: this card needs answer choices. No review or XP was recorded.</p>
+                <FlashcardContent content={activeCard.question} />
+                <button className="primary-btn" onClick={advanceCard}>Next Question →</button>
+              </div>
+            ) : recordedResult || pendingReview ? (
+              <div className="flashcard flashcard--interactive">
+                <div className="saved-review">
+                  <p className="study-mode-badge">
+                    {recordedResult ? 'Review already recorded' : 'Review waiting to save'}
+                  </p>
+                  <FlashcardContent content={activeCard.question} />
+                  <FlashcardContent content={activeCard.answer} />
+                  <p>{displayedResult?.mode === 'classic'
+                    ? `Self-rated: ${displayedResult.rating}`
+                    : displayedResult?.correct ? 'Correct on first attempt' : 'Incorrect on first attempt'}</p>
+                  {recordedResult && (
+                    <>
+                      <p>Next review: {new Date(recordedResult.card.next_review).toLocaleString()}</p>
+                      <p>This card is read-only. Your score and review history stay unchanged.</p>
+                      <button className="primary-btn" onClick={advanceCard}>Next Question →</button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
             {/* MULTIPLE CHOICE */}
             {currentMode === 'multiple_choice' && (
               <div className="flashcard flashcard--interactive">
                 <MultipleChoiceCard
                   card={activeCard}
-                  allCards={cards}
+                  onSkip={skipUnpreparedCard}
                   onResult={handleInteractiveResult}
+                  disabled={saving}
                 />
               </div>
             )}
@@ -317,6 +387,7 @@ const StudySession = () => {
                   question={activeCard.question}
                   answer={activeCard.answer}
                   onResult={handleInteractiveResult}
+                  disabled={saving}
                 />
               </div>
             )}
@@ -328,6 +399,7 @@ const StudySession = () => {
                   question={activeCard.question}
                   answer={activeCard.answer}
                   onResult={handleInteractiveResult}
+                  disabled={saving}
                 />
               </div>
             )}
@@ -341,7 +413,7 @@ const StudySession = () => {
                       <FlashcardContent content={activeCard.question} />
                     </div>
                     {activeCard.image_url && <img src={activeCard.image_url} alt="Study guide" className="study-card-image" />}
-                    <button className="show-btn" onClick={() => { setShowAnswer(true); setFirstAttempt(false); }}>
+                    <button className="show-btn" onClick={() => setShowAnswer(true)}>
                       Show Answer
                     </button>
                   </div>
@@ -357,14 +429,20 @@ const StudySession = () => {
                       <img src={activeCard.image_url} alt="Study visual" className="study-card-image" />
                     )}
                     <div className="rating-options">
-                      <button onClick={() => handleRating('again')} className="rate-btn again">Again <span className="rate-time">&lt; 10m</span></button>
-                      <button onClick={() => handleRating('hard')} className="rate-btn hard">Hard <span className="rate-time">1d</span></button>
-                      <button onClick={() => handleRating('good')} className="rate-btn good">Good <span className="rate-time">3d</span></button>
-                      <button onClick={() => handleRating('easy')} className="rate-btn easy">Easy <span className="rate-time">5d</span></button>
+                      {RATINGS.map(rating => (
+                        <button key={rating} disabled={saving} onClick={() => handleRating(rating)}
+                          className={`rate-btn ${rating}`}
+                          title={`Next review: ${new Date(scheduleReview(activeCard, rating).next_review).toLocaleString()}`}>
+                          {rating[0].toUpperCase() + rating.slice(1)}
+                          <span className="rate-time">{reviewIntervalLabel(activeCard, rating)}</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
+            )}
+              </>
             )}
           </motion.div>
         </AnimatePresence>

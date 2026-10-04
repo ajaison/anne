@@ -118,7 +118,7 @@
   {
     "question": "Fill in the blank to repeat the string `\"Hi \"` 3 times in Java 11+:\n```java\nString result = \"Hi \"._________(3);\n```",
     "answer": "repeat",
-    "card_type": "fill_in_the_blank",
+    "card_type": "fill_blank",
     "distractors": [],
     "is_code": true
   },

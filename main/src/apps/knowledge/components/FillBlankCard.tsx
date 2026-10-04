@@ -8,6 +8,7 @@ interface FillBlankCardProps {
   question: string;
   answer: string;
   onResult: (correct: boolean) => void;
+  disabled?: boolean;
 }
 
 // Java keywords prioritised for blanking
@@ -72,7 +73,7 @@ const generateChips = (token: string): string[] => {
   return [...distractors, token].sort(() => Math.random() - 0.5);
 };
 
-const FillBlankCard: React.FC<FillBlankCardProps> = ({ question, answer, onResult }) => {
+const FillBlankCard: React.FC<FillBlankCardProps> = ({ question, answer, onResult, disabled = false }) => {
   const blankToken = useMemo(() => extractBlankToken(answer), [answer]);
   const blankedAnswer = useMemo(() => applyBlank(answer, blankToken), [answer, blankToken]);
   const chips = useMemo(() => generateChips(blankToken), [blankToken]);
@@ -81,26 +82,26 @@ const FillBlankCard: React.FC<FillBlankCardProps> = ({ question, answer, onResul
   const [revealed, setRevealed] = useState(false);
 
   const handleChipSelect = (chip: string) => {
-    if (revealed) return;
+    if (revealed || disabled) return;
     setSelected(chip);
     setRevealed(true);
   };
 
   const handleNext = () => {
-    if (!selected) return;
+    if (!selected || disabled) return;
     onResult(selected === blankToken);
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (revealed && (e.key === 'Enter' || e.key === ' ')) {
+      if (revealed && selected && !disabled && !e.repeat && (e.key === 'Enter' || e.key === ' ')) {
         e.preventDefault();
-        handleNext();
+        onResult(selected === blankToken);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [revealed, selected, blankToken]);
+  }, [revealed, selected, blankToken, disabled, onResult]);
 
   const getChipState = (chip: string) => {
     if (!revealed) return 'idle';
@@ -147,7 +148,7 @@ const FillBlankCard: React.FC<FillBlankCardProps> = ({ question, answer, onResul
               whileHover={!revealed ? { scale: 1.05, y: -3 } : {}}
               animate={state === 'wrong' ? { x: [0, -8, 8, -6, 6, 0] } : {}}
               transition={state === 'wrong' ? { duration: 0.35 } : {}}
-              disabled={revealed}
+              disabled={revealed || disabled}
             >
               {chip}
             </motion.button>
@@ -170,7 +171,7 @@ const FillBlankCard: React.FC<FillBlankCardProps> = ({ question, answer, onResul
               )}
             </div>
 
-            <button className="primary-btn fb-next-btn" onClick={handleNext}>
+            <button className="primary-btn fb-next-btn" onClick={handleNext} disabled={disabled}>
               Next Question <ArrowRight size={18} />
             </button>
           </motion.div>

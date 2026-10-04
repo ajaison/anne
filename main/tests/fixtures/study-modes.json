@@ -1,0 +1,29 @@
+[
+  {
+    "question": "Classic test: what does this print?\n```java\nSystem.out.println(2 + 2);\n```",
+    "answer": "4",
+    "is_code": true,
+    "card_type": "classic"
+  },
+  {
+    "question": "Multiple choice test: what is 2 + 2?",
+    "answer": "4\n\nTwo plus two equals four.",
+    "card_type": "multiple_choice",
+    "distractors": ["3", "5", "6"]
+  },
+  {
+    "question": "Blank test: which Java keyword prevents reassignment of a variable?",
+    "answer": "final",
+    "card_type": "fill_blank"
+  },
+  {
+    "question": "Typed answer test: type the number four as a digit.",
+    "answer": "4",
+    "card_type": "type_answer"
+  },
+  {
+    "question": "Legacy blank test: which Java keyword declares a class?",
+    "answer": "class",
+    "card_type": "fill_in_the_blank"
+  }
+]

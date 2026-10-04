@@ -1,0 +1,50 @@
+[
+  {
+    "question": "Java 21: Customer overrides equals(Object) to compare customerId. What must a compatible hashCode() guarantee?",
+    "correct_option": "Objects equal by customerId produce the same hash code.",
+    "distractors": [
+      "Objects with different customerIds always produce different hash codes.",
+      "Objects equal by customerId retain identity-based hash codes.",
+      "Objects equal by customerId may produce different hash codes."
+    ],
+    "explanation": "Equality requires matching hashes. Unequal objects may share a hash, so uniqueness is not required. Identity-based hashing is not automatically compatible with value equality; equal objects cannot have different hashes.\n\nSource: [Object contract, Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html#hashCode()).",
+    "card_type": "multiple_choice",
+    "is_code": false
+  },
+  {
+    "question": "Java 21: Two unequal keys have the same hash code. What happens when both are inserted into a HashMap?",
+    "correct_option": "Both mappings can remain stored; equality distinguishes the keys.",
+    "distractors": [
+      "Only the latest mapping remains stored; matching hashes make keys equal.",
+      "The second insertion is rejected; matching hashes are invalid.",
+      "Both mappings remain stored; lookups distinguish keys by identity only."
+    ],
+    "explanation": "A collision does not make keys equal or prohibit insertion. Equality can distinguish colliding keys; lookup is not limited to reference identity.\n\nSource: [HashMap, Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html).",
+    "card_type": "multiple_choice",
+    "is_code": false
+  },
+  {
+    "question": "Java 21: scores is a HashMap<String, Integer>. scores.get(\"sam\") returns null. Which check distinguishes a missing key from a key mapped to null?",
+    "correct_option": "Use scores.containsKey(\"sam\"); it checks whether that key is present.",
+    "distractors": [
+      "Use scores.get(\"sam\") == null; it checks whether that key is absent.",
+      "Use scores.isEmpty(); it checks whether this particular key is absent.",
+      "Use scores.containsValue(null); it checks whether this key maps to null."
+    ],
+    "explanation": "get can return null in both cases. containsKey distinguishes them. isEmpty describes the entire map, and containsValue cannot identify a particular key.\n\nSource: [HashMap.get, Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashMap.html#get(java.lang.Object)).",
+    "card_type": "multiple_choice",
+    "is_code": false
+  },
+  {
+    "question": "Java 21: CustomerKey equality and hashing use mutable customerId. After insertion, customerId changes. Which design change best keeps map lookups reliable?",
+    "correct_option": "Use keys whose equality and hash fields remain stable while stored.",
+    "distractors": [
+      "Recompute hashCode on lookup so the stored entry moves between buckets.",
+      "Make customerId volatile so the stored entry follows key mutations.",
+      "Increase initial capacity so mutations cannot affect bucket lookup."
+    ],
+    "explanation": "Map behavior is unspecified after equality-affecting key mutations. Recomputing a hash does not relocate an entry. Visibility from volatile and extra capacity do not keep the key's equality stable.\n\nSource: [Mutable map keys, Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Map.html).",
+    "card_type": "multiple_choice",
+    "is_code": false
+  }
+]

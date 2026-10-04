@@ -1,8 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, CheckCircle, HelpCircle, Loader, Play, CloudDownload, Trash2, Zap, Copy } from 'lucide-react';
-import { createCard, supabase, deleteCard, bulkCreateCards } from './services/supabase';
+import { supabase, deleteCard, bulkCreateCards, updateCardContent } from './services/supabase';
 import { syncService } from './services/sync';
+import { parseCardImport } from './services/cardImport';
+import { choiceProblem, splitChoiceAnswer, choiceGenerationPrompt } from './services/multipleChoice';
+import { resolveStudyMode } from './services/studyModes';
+import { getPathway, topicUrl } from './curricula/pathways';
+import { db } from './services/db';
+import ChoiceAuthoringFields from './components/ChoiceAuthoringFields';
 import { FlashcardContent } from './components/FlashcardContent';
 import QuickAddPanel from './components/QuickAddPanel';
 import type { Card, Deck, StudyMode } from './types';
@@ -11,6 +17,8 @@ import './KnowledgeApp.css';
 const DeckView = () => {
     const { deckId } = useParams<{ deckId: string }>();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const pathway = getPathway(searchParams.get('pathway'));
     
     const [deck, setDeck] = useState<Deck | null>(null);
     const [cards, setCards] = useState<Card[]>([]);
@@ -27,7 +35,14 @@ const DeckView = () => {
     const [showGuide, setShowGuide] = useState(false);
     const [bulkText, setBulkText] = useState('');
     const [isImporting, setIsImporting] = useState(false);
+    const [importError, setImportError] = useState<string | null>(null);
     const [showQuickAdd, setShowQuickAdd] = useState(false);
+    const [editingCard, setEditingCard] = useState<Card | null>(null);
+    const [distractors, setDistractors] = useState(['', '', '']);
+    const [explanation, setExplanation] = useState('');
+    const [cardSaveError, setCardSaveError] = useState<string | null>(null);
+    const [savingCard, setSavingCard] = useState(false);
+    const saveCardLock = useRef(false);
 
     useEffect(() => {
         if (deckId) {
@@ -62,19 +77,52 @@ const DeckView = () => {
         setIsSyncing(false);
     };
 
+    const openCardEditor = (card?: Card) => {
+        if (saveCardLock.current) return;
+        const choice = card ? splitChoiceAnswer(card.answer) : { correctOption: '', explanation: '' };
+        const mode = card ? resolveStudyMode(card.card_type) : 'multiple_choice';
+        const useChoice = mode === 'multiple_choice' || mode === 'type_answer';
+        setEditingCard(card ?? null);
+        setQuestion(card?.question ?? '');
+        setAnswer(useChoice ? choice.correctOption : card?.answer ?? '');
+        setExplanation(useChoice ? choice.explanation : '');
+        setDistractors([0, 1, 2].map(i => card?.distractors?.[i] ?? ''));
+        setImageUrl(card?.image_url ?? '');
+        setIsCode(card?.is_code ?? false);
+        setCardType(mode === 'type_answer' ? 'multiple_choice' : mode);
+        setCardSaveError(null);
+        setIsCreating(true);
+    };
+
     const handleCreateCard = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!question.trim() || !answer.trim() || !deckId) return;
-
-        const { error } = await createCard(deckId, question, answer, imageUrl.trim() || undefined, isCode, cardType);
-        if (!error) {
-            setQuestion('');
-            setAnswer('');
-            setImageUrl('');
-            setIsCode(false);
-            setCardType('multiple_choice');
+        if (!deckId || saveCardLock.current) return;
+        saveCardLock.current = true;
+        setSavingCard(true);
+        setCardSaveError(null);
+        try {
+            const [content] = parseCardImport(JSON.stringify([{
+                question, card_type: cardType, image_url: imageUrl, is_code: isCode,
+                ...(cardType === 'multiple_choice'
+                    ? { correct_option: answer, explanation, distractors }
+                    : { answer }),
+            }]), deckId);
+            if (editingCard) {
+                const { data, error } = await updateCardContent(editingCard.id, content);
+                if (error) throw new Error(error.message);
+                await db.cards.put(data as Card);
+            } else {
+                const { error } = await bulkCreateCards([content]);
+                if (error) throw new Error(error.message);
+            }
             setIsCreating(false);
-            loadCards();
+            setEditingCard(null);
+            await loadCards();
+        } catch (error) {
+            setCardSaveError(error instanceof Error ? error.message : 'Unable to save the card.');
+        } finally {
+            saveCardLock.current = false;
+            setSavingCard(false);
         }
     };
     const handleDeleteCard = async (id: string) => {
@@ -89,107 +137,54 @@ const DeckView = () => {
     };
 
     const handleBulkImport = async () => {
-        if (!bulkText.trim() || !deckId) return;
+        if (!bulkText.trim() || !deckId || isImporting) return;
         setIsImporting(true);
-        
+        setImportError(null);
         try {
-            let cardsToCreate: any[] = [];
-            
-            // Try parsing as JSON first (Most robust for images/code)
-            try {
-                const parsed = JSON.parse(bulkText);
-                if (Array.isArray(parsed)) {
-                    cardsToCreate = parsed.map(c => ({
-                        deck_id: deckId,
-                        question: c.question || c.q,
-                        answer: c.answer || c.a,
-                        image_url: c.image_url || c.i,
-                        is_code: !!(c.is_code || c.c),
-                        card_type: c.card_type || c.t || 'classic',
-                        distractors: c.distractors || c.d || []
-                    }));
-                }
-            } catch (e) {
-                // If JSON fails, use the Enhanced Pipe Format
-                // Q: Question | A: Answer | I: ImageURL | C: true
-                const lines = bulkText.split('\n');
-                lines.forEach(line => {
-                    if (line.includes('|')) {
-                        const parts = line.split('|');
-                        const card: any = { deck_id: deckId };
-                        
-                        parts.forEach(part => {
-                            const p = part.trim();
-                            if (p.startsWith('Q:')) card.question = p.replace(/^Q:\s*/, '').trim();
-                            else if (p.startsWith('A:')) card.answer = p.replace(/^A:\s*/, '').trim();
-                            else if (p.startsWith('I:')) card.image_url = p.replace(/^I:\s*/, '').trim();
-                            else if (p.startsWith('C:')) card.is_code = p.toLowerCase().includes('true');
-                            else if (p.startsWith('TYPE:')) card.card_type = p.replace(/^TYPE:\s*/, '').trim();
-                            // Fallback for parts without prefixes
-                            else if (!card.question) card.question = p;
-                            else if (!card.answer) card.answer = p;
-                        });
-
-                        if (card.question && card.answer) {
-                            cardsToCreate.push(card);
-                        }
-                    }
-                });
-            }
-
-            if (cardsToCreate.length > 0) {
-                const { error } = await bulkCreateCards(cardsToCreate);
-                if (error) throw error;
-                setBulkText('');
-                setIsBulkMode(false);
-                loadCards();
-                alert(`Successfully imported ${cardsToCreate.length} cards!`);
-            } else {
-                alert('No valid cards found. Use format: Q: Question | A: Answer | I: ImageURL | C: true');
-            }
-        } catch (err: any) {
-            alert('Import failed: ' + err.message);
+            const cardsToCreate = parseCardImport(bulkText, deckId);
+            const { error } = await bulkCreateCards(cardsToCreate);
+            if (error) throw error;
+            setBulkText('');
+            setIsBulkMode(false);
+            loadCards();
+            alert(`Successfully imported ${cardsToCreate.length} cards!`);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message
+                : typeof error === 'object' && error !== null && 'message' in error
+                    ? String(error.message) : 'Unable to save cards. Please try again.';
+            setImportError(message);
         } finally {
             setIsImporting(false);
         }
     };
 
     const copyDeckForAI = () => {
-        const text = cards.map(c => {
-            let line = `Q: ${c.question} | A: ${c.answer}`;
-            if (c.image_url) line += ` | I: ${c.image_url}`;
-            if (c.is_code) line += ` | C: true`;
-            return line;
-        }).join('\n');
-        
-        const header = `# Existing Flashcards for ${deck?.name}\n` +
-                       `# Instructions: Generate new cards in this format: "Q: [Question] | A: [Answer] | I: [Optional Image URL] | C: [Optional true/false]"\n\n`;
-        
-        navigator.clipboard.writeText(header + text);
-        alert('Deck context (including images/code tags) copied to clipboard!');
+        const content = cards.map(card => ({
+            question: card.question, answer: card.answer, card_type: card.card_type,
+            distractors: card.distractors, is_code: card.is_code, image_url: card.image_url,
+        }));
+        navigator.clipboard.writeText(`# Existing cards for ${deck?.name}\n${JSON.stringify(content, null, 2)}`);
+        alert('Deck context, including authored choices, copied!');
     };
 
     const copyPromptTemplate = () => {
-        const template = `**Task:** Generate 20 new high-quality flashcards for the deck "${deck?.name}".\n\n` +
-            `**Output Format:**\n` +
-            `Q: [Question] | A: [Detailed Answer] | I: [Optional Image URL] | C: [true/false]\n\n` +
-            `**Instructions:**\n` +
-            `- Use Markdown for code/formatting.\n` +
-            `- Focus on conceptual depth.\n` +
-            `- No duplicates.`;
-        navigator.clipboard.writeText(template);
-        alert('Prompt template copied!');
+        navigator.clipboard.writeText(choiceGenerationPrompt(deck?.name ?? 'this topic'));
+        alert('Multiple-choice generation prompt copied!');
     };
 
     return (
         <div className="knowledge-container">
             <header className="knowledge-header">
-                <button className="back-button" onClick={() => navigate(`/knowledge/project/${deck?.project_id}`)}>
-                    <ArrowLeft size={20} /> Back to Project
+                <button className="back-button" onClick={() => navigate(pathway
+                    ? topicUrl(deckId!, pathway.id) : `/knowledge/project/${deck?.project_id}`)}>
+                    <ArrowLeft size={20} /> {pathway ? 'Back to topic' : 'Back to Project'}
                 </button>
                 <div className="header-bottom">
                     <h1>{deck?.name || 'Loading Deck...'}</h1>
                     <div className="deck-actions">
+                        <button className="copy-ai-btn" onClick={() => navigate(topicUrl(deckId!, pathway?.id))}>
+                            Concepts
+                        </button>
                         <button className="copy-ai-btn" onClick={() => setShowGuide(true)} title="AI Generation Guide">
                             <HelpCircle size={18} /> Guide
                         </button>
@@ -212,13 +207,13 @@ const DeckView = () => {
                         >
                             <Play size={18} /> Study
                         </button>
-                        <button className="bulk-add-btn" onClick={() => setIsBulkMode(!isBulkMode)}>
+                        <button className="bulk-add-btn" onClick={() => { setIsBulkMode(!isBulkMode); setImportError(null); }}>
                             <Zap size={18} /> Bulk Add
                         </button>
                         <button className="quick-add-btn" onClick={() => setShowQuickAdd(true)}>
                             <Zap size={18} /> Quick Add
                         </button>
-                        <button className="add-project-btn" onClick={() => setIsCreating(true)}>
+                        <button className="add-project-btn" onClick={() => openCardEditor()}>
                             <Plus size={20} />
                         </button>
                     </div>
@@ -231,16 +226,16 @@ const DeckView = () => {
                     <div className="project-form-card ai-guide-modal">
                         <div className="editor-header">
                             <h2><HelpCircle size={20} /> AI Flashcard Guide</h2>
-                            <p>Use Gemini to grow your 2nd Brain in 3 steps:</p>
+                            <p>Create convincing multiple-choice cards in 3 steps:</p>
                         </div>
                         <div className="guide-steps">
                             <div className="step">
                                 <strong>1. Copy Context:</strong>
-                                <p>Click the <b>Context</b> button to let Gemini know what you already have.</p>
+                                <p>Click the <b>Context</b> button to let your AI know what you already have.</p>
                             </div>
                             <div className="step">
                                 <strong>2. Use the Prompt:</strong>
-                                <p>Paste your context into Gemini and ask it to generate new cards using our standard format.</p>
+                                <p>Paste your context into your AI and ask it to generate new cards using our standard format.</p>
                                 <button className="copy-template-btn" onClick={copyPromptTemplate}>
                                     <Copy size={14} /> Copy Prompt Template
                                 </button>
@@ -259,7 +254,7 @@ const DeckView = () => {
                     <div className="project-form-card bulk-editor">
                         <div className="editor-header">
                             <h2><Zap size={20} /> Bulk Import Cards</h2>
-                            <p>Paste cards from AI. Format: <code>Q: Question | A: Answer</code> (one per line) or a JSON array.</p>
+                            <p>For multiple choice, paste a JSON array with <code>question</code>, <code>correct_option</code>, <code>explanation</code>, and three <code>distractors</code>. Legacy answer fields and pipe-format Classic cards still work.</p>
                         </div>
                         <textarea 
                             className="bulk-textarea"
@@ -267,9 +262,15 @@ const DeckView = () => {
 Q: What is React? | A: A JavaScript library for building UI
 Q: What is Vite? | A: A fast frontend build tool" 
                             value={bulkText}
-                            onChange={(e) => setBulkText(e.target.value)}
+                            onChange={(e) => { setBulkText(e.target.value); setImportError(null); }}
+                            disabled={isImporting}
+                            aria-label="Cards to import"
+                            aria-describedby={importError ? "card-import-error" : undefined}
                             rows={10}
                         />
+                        {importError && (
+                            <p id="card-import-error" className="card-import-error" role="alert">{importError}</p>
+                        )}
                         <div className="form-actions">
                             <button className="cancel-btn" onClick={() => setIsBulkMode(false)}>Cancel</button>
                             <button 
@@ -284,21 +285,36 @@ Q: What is Vite? | A: A fast frontend build tool"
                 )}
                 {isCreating && (
                     <div className="project-form-card card-editor">
-                        <h2>Add New Card</h2>
+                        <h2>{editingCard ? "Edit Card" : "Add New Card"}</h2>
                         <form onSubmit={handleCreateCard}>
-                            <textarea 
-                                placeholder="THE QUESTION (Markdown supported)" 
+                            <fieldset className="card-editor-fields" disabled={savingCard}>
+                            <label className="card-editor-label">
+                              Question
+                              <textarea
+                                className="qa-textarea"
+                                placeholder="Write the question (Markdown supported)"
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}
                                 rows={3}
                                 autoFocus
-                            />
-                            <textarea 
-                                placeholder="THE ANSWER (Markdown supported)"
+                              />
+                            </label>
+                            <label className="card-editor-label">
+                              {cardType === 'multiple_choice' ? 'Correct answer option' : 'Answer'}
+                              <textarea
+                                className="qa-textarea"
+                                placeholder={cardType === 'multiple_choice' ? 'Write the correct option; put the explanation below' : 'Write the answer (Markdown supported)'}
+                                aria-label={cardType === 'multiple_choice' ? 'Correct answer option' : 'Answer'}
                                 value={answer}
                                 onChange={(e) => setAnswer(e.target.value)}
-                                rows={5}
-                            />
+                                rows={cardType === 'multiple_choice' ? 3 : 5}
+                              />
+                            </label>
+                            {cardType === 'multiple_choice' && (
+                                <ChoiceAuthoringFields distractors={distractors} explanation={explanation}
+                                    onDistractors={setDistractors} onExplanation={setExplanation} disabled={savingCard} />
+                            )}
+                            {cardSaveError && <p className="card-import-error" role="alert">{cardSaveError}</p>}
                             <div className="extra-inputs">
                                 <input 
                                     type="url" 
@@ -330,8 +346,9 @@ Q: What is Vite? | A: A fast frontend build tool"
                             </div>
                             <div className="form-actions">
                                 <button type="button" className="cancel-btn" onClick={() => setIsCreating(false)}>Cancel</button>
-                                <button type="submit" className="submit-btn" disabled={!question.trim() || !answer.trim()}>Save Card</button>
+                                <button type="submit" className="submit-btn" disabled={savingCard || !question.trim() || !answer.trim()}>{savingCard ? 'Saving…' : 'Save Card'}</button>
                             </div>
+                            </fieldset>
                         </form>
                     </div>
                 )}
@@ -366,6 +383,14 @@ Q: What is Vite? | A: A fast frontend build tool"
                                     <div className="card-text-content">
                                         <div className="card-markdown">
                                             <FlashcardContent content={card.answer} />
+                                        </div>
+                                        <div className="choice-card-actions">
+                                            <button className="copy-ai-btn" onClick={() => openCardEditor(card)}>
+                                                {card.card_type === 'type_answer' ? 'Convert to multiple choice' : 'Edit card'}
+                                            </button>
+                                            {card.card_type === 'multiple_choice' && choiceProblem(card.answer, card.distractors) && (
+                                                <span>Needs answer choices</span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

@@ -7,6 +7,7 @@ interface TypeAnswerCardProps {
   question: string;
   answer: string;
   onResult: (correct: boolean) => void;
+  disabled?: boolean;
 }
 
 /** Normalise answer text: strip markdown, lowercase, trim */
@@ -38,7 +39,7 @@ const fuzzyMatch = (input: string, target: string): boolean => {
   return dp[a.length][b.length] <= maxDist;
 };
 
-const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onResult }) => {
+const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onResult, disabled = false }) => {
   const [typed, setTyped] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -46,7 +47,7 @@ const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onRes
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!typed.trim() || submitted) return;
+    if (!typed.trim() || submitted || disabled) return;
 
     const correct = fuzzyMatch(typed, answer);
     setIsCorrect(correct);
@@ -54,20 +55,20 @@ const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onRes
   };
 
   const handleNext = () => {
-    if (!submitted) return;
+    if (!submitted || disabled) return;
     onResult(isCorrect);
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (submitted && (e.key === 'Enter' || e.key === ' ')) {
+      if (submitted && !disabled && !e.repeat && (e.key === 'Enter' || e.key === ' ')) {
         e.preventDefault();
-        handleNext();
+        onResult(isCorrect);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [submitted, isCorrect]);
+  }, [submitted, isCorrect, disabled, onResult]);
 
   const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !submitted) handleSubmit();
@@ -89,12 +90,12 @@ const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onRes
             value={typed}
             onChange={e => setTyped(e.target.value)}
             onKeyDown={handleInputKeyDown}
-            disabled={submitted}
+            disabled={submitted || disabled}
             autoFocus
             autoComplete="off"
             spellCheck={false}
           />
-          <button type="submit" className="ta-submit-btn" disabled={!typed.trim() || submitted}>
+          <button type="submit" className="ta-submit-btn" disabled={!typed.trim() || submitted || disabled}>
             <Send size={18} />
           </button>
         </div>
@@ -132,7 +133,7 @@ const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ question, answer, onRes
               )}
             </div>
 
-            <button className="primary-btn ta-next-btn" onClick={handleNext}>
+            <button className="primary-btn ta-next-btn" onClick={handleNext} disabled={disabled}>
               Next Question <ArrowRight size={18} />
             </button>
           </motion.div>

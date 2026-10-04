@@ -24,7 +24,7 @@
   {
     "question": "What keyword is used in Java 14+ switch expressions to yield a value from a block `case`?\n```java\nint result = switch (day) {\n    case \"MONDAY\" -> 1;\n    default -> {\n        int len = day.length();\n        _______ len * 2;\n    }\n};\n```",
     "answer": "yield",
-    "card_type": "fill_in_the_blank",
+    "card_type": "fill_blank",
     "distractors": [],
     "is_code": true
   },

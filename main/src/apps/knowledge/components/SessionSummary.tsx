@@ -23,6 +23,7 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ result, deckName, onStu
   };
 
   const getMoodMessage = () => {
+    if (!result.totalCards) return 'No reviews recorded';
     if (accuracy >= 90) return 'Outstanding session!';
     if (accuracy >= 70) return 'Great work!';
     if (accuracy >= 50) return 'Keep it up!';
@@ -51,8 +52,13 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ result, deckName, onStu
         <motion.div className="summary-hero" variants={itemVariants}>
           <div className="summary-emoji">{getMoodEmoji()}</div>
           <h2 className="summary-title">{getMoodMessage()}</h2>
-          <p className="summary-subtitle">You completed <strong>{deckName}</strong></p>
+          <p className="summary-subtitle">Session finished: <strong>{deckName}</strong></p>
         </motion.div>
+
+        {!!result.skippedCards && (
+          <p className="study-save-notice">{result.skippedCards} unprepared {result.skippedCards === 1 ? 'card was' : 'cards were'} skipped.
+            Skipped cards do not affect accuracy, XP, or review history.</p>
+        )}
 
         {/* Stats grid */}
         <motion.div className="summary-stats" variants={itemVariants}>
@@ -60,7 +66,7 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ result, deckName, onStu
             <div className="summary-stat-icon" style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
               <Target size={22} />
             </div>
-            <div className="summary-stat-value">{accuracy}%</div>
+            <div className="summary-stat-value">{result.totalCards ? `${accuracy}%` : '—'}</div>
             <div className="summary-stat-label">Accuracy</div>
           </div>
 
@@ -106,7 +112,7 @@ const SessionSummary: React.FC<SessionSummaryProps> = ({ result, deckName, onStu
               }}
             />
           </div>
-          <span className="summary-accuracy-label">{accuracy}% accuracy</span>
+          <span className="summary-accuracy-label">{result.totalCards ? `${accuracy}% accuracy` : 'No graded reviews'}</span>
         </motion.div>
 
         {/* Per-card breakdown */}

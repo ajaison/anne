@@ -874,3 +874,14 @@ in learner prompts only when they affect the answer. Also omit standard-main/
 no-arguments setup when irrelevant, retaining useful introductory teaching text.
 This is a documentation-only rule change. Existing packs, SQL and imported
 questions were not rewritten; no tests or live database access were needed.
+
+### Cloudflare build failure diagnosis — 2026-10-06
+
+User supplied an August 9 build log with TS2304 for undefined d in
+MultipleChoiceCard.tsx. Git history identifies the old typo precisely:
+export default MultipleChoiceCard;d; was corrected in commit f84fcdf.
+Current checkout (599acef, branch git-push) already contains the correction.
+npm run build from main passed on recheck, with only existing bundle-size/
+stale Browserslist warnings. No application change was necessary. Cloudflare
+configuration/deployed commit was not inspected; rebuild a commit containing
+the fix on the intended deployment branch. No deployment was performed.

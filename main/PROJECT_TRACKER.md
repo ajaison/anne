@@ -885,3 +885,53 @@ npm run build from main passed on recheck, with only existing bundle-size/
 stale Browserslist warnings. No application change was necessary. Cloudflare
 configuration/deployed commit was not inspected; rebuild a commit containing
 the fix on the intended deployment branch. No deployment was performed.
+
+### Repeated Cloudflare TS2304 investigation — 2026-10-08
+
+User supplied a new October 6 failure with the same undefined d diagnostic.
+Read-only live GitHub checks show git-push at bfd25521e66ed17dcc30645a40cb49560356c274
+and main at 5d0ecb5e89b16706b3ee2cca009a0ed28bf316b1; both corresponding source
+files end with a clean export. The failed Cloudflare revision/branch is still
+unavailable, so incorrect revision versus reused incremental results remains
+unconfirmed. Requested the failed build's branch/commit from the user.
+
+Locally updated main/package.json build to tsc -b --force && vite build and
+added scripts/build-context.mjs as prebuild. It logs actual Git revision/branch,
+MultipleChoiceCard source checksum and final line without credentials. Fresh
+production build passed; only existing bundle/Browserslist warnings remain.
+No app behavior, content or database changes were required. Build diagnostics
+are not yet committed/pushed/deployed; Cloudflare execution remains unverified.
+
+### Cloudflare failing revision identified — 2026-10-25
+
+User reports TS2304 at MultipleChoiceCard.tsx(207,35) and identifies Cloudflare's
+last revision by commit message: “feat: add previous card navigation to study
+sessions and improve interactive card feedback with manual next controls”.
+This matches 7d6038f; inspecting that committed source confirms its final line
+is `export default MultipleChoiceCard;d;`. The following fix f84fcdf (“delete
+typeo”) removes the stray d. This is a confirmed old-source error, not evidence
+of a new regression or a need for cache workarounds.
+
+Live read-only `git ls-remote` confirms GitHub git-push at bfd25521e66ed17dcc30645a40cb49560356c274
+and main at 5d0ecb5e89b16706b3ee2cca009a0ed28bf316b1. Both revisions contain the
+clean export; current local HEAD matches git-push. Current working-tree
+production build passed again (existing bundle/Browserslist warnings only).
+Earlier forced-build/diagnostic changes remain uncommitted and are not needed
+to remove this already-fixed typo. Unrelated SQL edits were left untouched.
+
+Next action: deploy a newer revision from the intended Cloudflare-connected
+branch rather than retrying 7d6038f. No additional source fix or Git push is
+required for this diagnostic. Cloudflare branch settings and the new deployment
+have not been inspected or changed by the agent; deployment success is pending.
+
+### Fresh build diagnostic push — 2026-10-25
+
+User reports retrying still builds the same failing source and explicitly
+requests another push with a small change. Publish the prepared build-only
+changes on the current git-push branch: force TypeScript project rebuild and
+run prebuild diagnostics (marker `Anne build diagnostics v1`, Git revision,
+branch, component checksum and final source line). The current source is clean
+and the production build passed on 2026-10-25. This provides a fresh revision
+and visible evidence of which checkout Cloudflare uses; it does not establish
+that its connected branch/settings are correct. Keep unrelated seed SQL edits
+out of this commit. Cloudflare deployment success still requires verification.
